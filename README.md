@@ -1,4 +1,4 @@
-# connect-four-game
+# Connect Four Python Game with Sockets
 
 This is a simple Connect Four game implemented using Python and sockets.
 
