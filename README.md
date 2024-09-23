@@ -21,6 +21,3 @@ This is a simple Connect Four game implemented using Python and sockets.
 **Technologies used:**
 * Python
 * Sockets
-
-**Additional resources:**
-* 
