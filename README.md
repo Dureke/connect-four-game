@@ -13,7 +13,10 @@ This is a simple Connect Four game implemented using Python and sockets.
 * Tokens can connect 4 diagonally, vertically, and horizontally
 * The game board will be 7 spaces wide and 6 spaces tall
 
-**Features:**
+**Reference:**
+* The rules will be based off of the hasbro instructions found here: https://instructions.hasbro.com/en-my/instruction/connect-4-game
+* The image below will be used as a demonstration and reference in development
+![reference image](images/connect-4-board-reference.jpg)
 
 **Technologies used:**
 * Python
