@@ -6,10 +6,10 @@ This is a simple Connect Four game implemented using Python and sockets.
 2. **Start one or more clients:** Run the `Client.py` script with -i arg set to the server IP address. There is an optional arg -p/--port, default value set to 65432. Example: `py Client.py -i 127.0.0.1` or `py Client.py -i 127.0.0.1 -p 65432`
 3. **Write messages to Server**: In the client terminal, type a variety of messages, seperated by ENTER key. When finished, type 'quit' and press ENTER. Server will echo the messages sent. Multiple clients can do this simultanously.
 
-**How to play:**
-1. **Start the server:** Run the `Server.py` script.
-2. **Connect clients:** Run the `Client.py` script on two different machines or terminals.
-3. **Play the game:** Players take turns entering their moves. The first player to connect four in their color wins!
+~~**How to play:**~~
+~~1. **Start the server:** Run the `Server.py` script.~~
+~~2. **Connect clients:** Run the `Client.py` script on two different machines or terminals.~~
+~~3. **Play the game:** Players take turns entering their moves. The first player to connect four in their color wins!~~
 
 **Rules:** 
 * One of the two players will be chosen at random to make the first move
