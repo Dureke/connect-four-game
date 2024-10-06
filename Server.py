@@ -27,6 +27,7 @@ def setup_lsock(server_address):
     Example:   ('127.0.0.1', 65432)"""
     lsock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     try:
+        lsock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         lsock.bind(server_address)
     except socket.error:
         print(f"Exception: Input address [{server_address}] not valid, exiting.")
@@ -97,7 +98,7 @@ def parse_args():
         port = 65432
     else:
         port = args['port']
-        if not 0 <= port <= 65535: ## TODO: should move to setup_lsock? 
+        if not 0 <= port <= 65535: ## TODO: should move exception to setup_lsock? 
             print(f"Exception: Port must be within range [0, 65535]")
             sys.exit(1)
     
