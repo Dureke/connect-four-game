@@ -13,9 +13,11 @@ options:
 
 import socket
 import selectors
-import types
 import sys
 import argparse
+import traceback
+
+import servermessage
 
 sel = selectors.DefaultSelector()
 
@@ -25,6 +27,7 @@ def setup_lsock(server_address):
     
     Arguments: tuple (host, port)
     Example:   ('127.0.0.1', 65432)"""
+    
     lsock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     try:
         lsock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -44,38 +47,13 @@ def accept_wrapper(sock):
 
     Arguments: key.fileobj  sock
     Example:   selectors.selector().SelectorKey.fileobj"""
+
     conn, addr = sock.accept()
     print(f"Address [{addr}] sucessfully connected.")
     conn.setblocking(False)
-    data = types.SimpleNamespace(addr=addr, inb=b"", outb=b"")
-    events = selectors.EVENT_READ | selectors.EVENT_WRITE
-    sel.register(conn, events, data=data)
-
-# called when the server triggers a read or write invite event
-def service_connection(key, mask):
-    """Function called when server triggers a read or write event. Processes recieved data from
-    client and echoes recieved data back to the client.
-    Logs sent data into terminal. If no more data is recieved, closes connection to client.
-    
-    Arguments: selectors SelectorKey, 
-               selectors _EventMask
-    Example:   key, mask = selectors.selector()"""
-    sock = key.fileobj
-    data = key.data
-
-    if mask & selectors.EVENT_READ:
-        recv_data = sock.recv(1024)
-        if recv_data:
-            data.outb += recv_data
-        else:
-            print(f"No more data from {data.addr}. Connection ended.")
-            sel.unregister(sock)
-            sock.close()
-    if mask & selectors.EVENT_WRITE:
-        if data.outb:
-            print(f"echoing {repr(data.outb)} to {data.addr}.")
-            sent = sock.send(data.outb)
-            data.outb = data.outb[sent:]
+    message = servermessage.Message(sel, conn, addr)
+    events = selectors.EVENT_READ # | selectors.EVENT_WRITE
+    sel.register(conn, events, data=message)
 
 # parses the required argument of --ip-addr, as well as an optional port number
 def parse_args():
@@ -115,7 +93,15 @@ try:
             if key.data is None:
                 accept_wrapper(key.fileobj)
             else:
-                service_connection(key, mask)
+                message = key.data
+                try:
+                    message.process_events(mask)
+                except Exception:
+                    print(
+                        "Exception: exception for",
+                        f"{message.addr}:\n{traceback.format_exc()}",
+                    )
+                    message.close()
 except KeyboardInterrupt:
     print(f"Exception: Caught keyboard interrupt, exiting.")
 except ConnectionError as err:
