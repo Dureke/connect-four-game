@@ -99,8 +99,7 @@ def parse_args():
     else:
         port = args['port']
         if not 0 <= port <= 65535: ## TODO: should move exception to setup_lsock? 
-            print(f"Exception: Port must be within range [0, 65535]")
-            sys.exit(1)
+            raise ValueError(f"Invalid port value [{port}]. Port must be within range [0, 65535].")
     
     return host, port
 
