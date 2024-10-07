@@ -77,8 +77,6 @@ def parse_args():
         value = "None"
     else:
         value = args['value']
-    
-    # print(f"Host: {host}, port: {port}, action: {action}, value: {value}")
 
     return host, port, action, value
 
