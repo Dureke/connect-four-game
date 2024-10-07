@@ -29,13 +29,12 @@ def start_connections(server_addr, request):
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     sock.setblocking(False)
     
-    sock.connect_ex(server_addr)
-    # try: # make into loop to try 3 times before failing and stopping?
-    #     errno = sock.connect_ex(server_addr)
-    # except Exception as err:
-    #     print(f"Connection failed. [{errno}]:\n{err}.")
-    #     sock.close()
-    #     return
+    try: # make into loop to try 3 times before failing and stopping?
+        errno = sock.connect_ex(server_addr)
+    except Exception as err:
+        print(f"Connection failed. [{errno}]:\n{err}.")
+        sock.close()
+        return
 
     events = selectors.EVENT_READ | selectors.EVENT_WRITE
     message = clientmessage.Message(sel, sock, server_addr, request)
