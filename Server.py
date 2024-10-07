@@ -27,7 +27,7 @@ def setup_lsock(server_address):
     
     Arguments: tuple (host, port)
     Example:   ('127.0.0.1', 65432)"""
-    
+
     lsock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     try:
         lsock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)

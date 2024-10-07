@@ -21,7 +21,6 @@ import traceback
 import clientmessage
 
 sel = selectors.DefaultSelector()
-messages = [b"This is the start of the connection."]
 
 def start_connections(server_addr, request):
     """Function called before the client event loop. Establishes connection to server."""
@@ -30,12 +29,13 @@ def start_connections(server_addr, request):
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     sock.setblocking(False)
     
-    try: # make into loop to try 3 times before failing and stopping?
-        errno = sock.connect_ex(server_addr)
-    except Exception as err:
-        print(f"Connection failed. [{errno}]:\n{err}.")
-        sock.close()
-        return
+    sock.connect_ex(server_addr)
+    # try: # make into loop to try 3 times before failing and stopping?
+    #     errno = sock.connect_ex(server_addr)
+    # except Exception as err:
+    #     print(f"Connection failed. [{errno}]:\n{err}.")
+    #     sock.close()
+    #     return
 
     events = selectors.EVENT_READ | selectors.EVENT_WRITE
     message = clientmessage.Message(sel, sock, server_addr, request)
@@ -52,8 +52,16 @@ def parse_args():
     Accepted arguments: -i/--ip-addr (str: IPv4/IPv6), -p/--port (int: 0-65535)"""
     parser = argparse.ArgumentParser(prog='Client.py',
                                      description='This is the client portion of the connect four python game.')
-    parser.add_argument('-i', '--ip', metavar='IP', type=str, required=True, help='an IPv4/IPv6 address of the server the client is connecting to')
-    parser.add_argument('-p', '--port', metavar='N', type=int, help='the port of the server client is connecting to')
+    parser.add_argument('ip', metavar='ip-addr', type=str,
+                        help='an IPv4/IPv6 address of the server the client is connecting to')
+    parser.add_argument('-p', '--port', metavar='N', type=int, 
+                        help='the port of the server client is connecting to. (Default: 65432)')
+    parser.add_argument('action', metavar='request', type=str, 
+                        help='the action requested from client to server')
+    parser.add_argument('value', metavar='value', type=str, nargs='?',
+                        help='the optional clarification for the action selected (Default: "None")')
+
+    # TODO: Support DNS name and argument -d --DNS.
 
     args = vars(parser.parse_args())
     
@@ -65,8 +73,13 @@ def parse_args():
         if not 0 <= port <= 65535:
             raise ValueError(f"Invalid port value [{port}]. Port must be within range [0, 65535].")
     
-    action = "None"
-    value = "0"
+    action = args['action']
+    if not args['value']:
+        value = "None"
+    else:
+        value = args['value']
+    
+    # print(f"Host: {host}, port: {port}, action: {action}, value: {value}")
 
     return host, port, action, value
 
@@ -99,7 +112,7 @@ start_connections((host, port), request)
 
 try:
     while True:
-        events = sel.select(timeout=None)
+        events = sel.select(timeout=1)
         if events:
             for key, mask in events:
                 message = key.data
@@ -110,7 +123,7 @@ try:
                         "main: error: exception for",
                         f"{message.addr}:\n{traceback.format_exc()}",
                     )
-                message.close()
+                    message.close()
 
         if not sel.get_map():
             break
