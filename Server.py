@@ -63,11 +63,13 @@ def parse_args():
     Returns: host, port
     Example: ('127.0.0.1', 65432)
     
-    Accepted arguments: -i/--ip-addr (str: IPv4/IPv6), -p/--port (int: 0-65535)"""
+    usage: Server.py [-h] [-p N] ip-addr"""
     parser = argparse.ArgumentParser(prog='Server.py',
                                      description='This is the server portion of the connect four python game.')
-    parser.add_argument('-i', '--ip', metavar='IP', type=str, required=True, help='an IPv4/IPv6 address for server')
-    parser.add_argument('-p', '--port', metavar='N', type=int, help='the port of the server')
+    parser.add_argument('ip', metavar='ip-addr', type=str, 
+                        help='an IPv4/IPv6 address for server')
+    parser.add_argument('-p', '--port', metavar='N', type=int, 
+                        help='the port of the server. Values within range [0, 65535] (Default: 65432)')
 
     args = vars(parser.parse_args())
     

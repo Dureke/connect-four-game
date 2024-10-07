@@ -45,16 +45,17 @@ def parse_args():
     """Function neatly takes sys.argv arguments and outputs returns host, port based on the input values.
     If there is additional unexpected arguments, an error is thrown and program is prematurely ended.
     
-    Returns: host, port
-    Example: ('127.0.0.1', 65432)
+    Returns: host, port, action, value
+    Example: ('127.0.0.1', 65432, 'search', 'user')
     
-    Accepted arguments: -i/--ip-addr (str: IPv4/IPv6), -p/--port (int: 0-65535)"""
+    usage: Client.py [-h] ip-addr port request [value]
+    examp: Client.py 127.0.0.1  65432 search user"""
     parser = argparse.ArgumentParser(prog='Client.py',
                                      description='This is the client portion of the connect four python game.')
     parser.add_argument('ip', metavar='ip-addr', type=str,
                         help='an IPv4/IPv6 address of the server the client is connecting to')
-    parser.add_argument('-p', '--port', metavar='N', type=int, 
-                        help='the port of the server client is connecting to. (Default: 65432)')
+    parser.add_argument('port', type=int, 
+                        help='the port of the server client is connecting to. Values within range [0, 65535]')
     parser.add_argument('action', metavar='request', type=str, 
                         help='the action requested from client to server')
     parser.add_argument('value', metavar='value', type=str, nargs='?',
@@ -65,12 +66,9 @@ def parse_args():
     args = vars(parser.parse_args())
     
     host = args['ip']
-    if not args['port']:
-        port = 65432
-    else:
-        port = args['port']
-        if not 0 <= port <= 65535:
-            raise ValueError(f"Invalid port value [{port}]. Port must be within range [0, 65535].")
+    port = args['port']
+    if not 0 <= port <= 65535:
+        raise ValueError(f"Invalid port value [{port}]. Port must be within range [0, 65535].")
     
     action = args['action']
     if not args['value']:
