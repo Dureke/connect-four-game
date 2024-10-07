@@ -5,7 +5,7 @@ This is a simple Connect Four game implemented using Python and sockets.
 1. **Start the server:** Run the `Server.py` script with 1 required argument and 1 optional argument.
    - usage: Server.py [-h\] ip-addr [port\]
    - First required arg is the server IP address.
-   - First optional arg requires-p/--port for the port number of the server, default value set to 65432.
+   - First optional arg is the port number of the server, default value set to 65432.
    - Example: `py Server.py 127.0.0.1` is equivalent to `py Server.py 127.0.0.1 -p 65432`.
    - Use `py Server.py -h` for additional information.
      
