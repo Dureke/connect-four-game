@@ -78,14 +78,20 @@ def parse_args():
 
     return host, port, action, value
 
+def fill_request(reqType, reqEncoding, reqAction, reqValue):
+    return dict(
+        type=reqType,
+        encoding=reqEncoding,
+        content=dict(action=reqAction, value=reqValue),
+    )
+def fill_text_request(reqAction, reqValue):
+    return fill_request("text/json", "utf-8", reqAction, reqValue)
+
 def create_request(action, value):
     """Creates a protocol for the client request, to be sent to the clientmessage Message."""
-    if action == "search":
-        return dict(
-            type="text/json",
-            encoding="utf-8",
-            content=dict(action=action, value=value),
-        )
+    possibleActions = ["search", "login", "start", "join", "move", "quit"]
+    if possibleActions.__contains__(action):
+        return fill_text_request(action, value)
     elif action == "double" or action == "negate":
         return dict(
             type="binary/custom-client-binary-type",

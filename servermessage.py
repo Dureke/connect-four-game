@@ -103,8 +103,8 @@ class Message:
         value = self.request.get("value")
         if action == "search":
             answer = request_search.get(value) or f'No match for "{value}".'
-            
             content = {"result": answer}
+            
         elif action == "login":
             movehandler.login(value)
             content = {"result": f"Sucessfully logged in user {value}, welcome!"}
