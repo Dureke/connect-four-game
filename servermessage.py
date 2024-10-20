@@ -122,12 +122,12 @@ class Message:
             username = movehandler.queueMove(value)
             content = {"result": f"User {username} sucessfully queued a move."}
 
-        elif action == "chat":
-            content = {"result": "chatted"}
+        # elif action == "chat":
+        #     content = {"result": "chatted"}
 
         elif action == "quit":
             self.close()
-            content = {"result": "Connection closing."}
+            content = {"result": "Connection closing. Goodbye!"}
         else:
             content = {"result": f'Error: invalid action "{action}".'}
 

@@ -65,11 +65,8 @@ def join(usernames):
         board.setPlayer2(joiner)
     else:
         raise Exception(f"No open games for host {host}.")
-    
-def queueMove(value):
-    return
 
-def parseMove(value):
+def queueMove(value):
     # username,color,x,y,boardID
     parsed_value = value.split(',')
     username = parsed_value[0]
