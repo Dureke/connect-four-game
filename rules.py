@@ -1,15 +1,15 @@
-import color
+import colors
 
 class Rules:
 
     def __init__(self):
-        self.nextPlayer = color.RED
+        self.nextPlayer = colors.RED
 
     def cycleTurn(self):
-        if self.nextPlayer is color.RED:
-            self.setNextPlayer(color.BLACK)
+        if self.nextPlayer is colors.RED:
+            self.setNextPlayer(colors.BLACK)
         else:
-            self.setNextPlayer(color.RED)
+            self.setNextPlayer(colors.RED)
 
     def locationFree(self, board, piece):
         x, y = piece.getLocation()

@@ -1,6 +1,6 @@
-import color
+import colors
 
-class Piece(color):
+class Piece(colors):
     count = 0
 
     def __init__(self, color, x, y, board):
@@ -25,9 +25,9 @@ class Piece(color):
         return self.board
 
     def __str__(self):
-        if self.color == color.RED:
+        if self.color == colors.RED:
             return "X"
-        elif self.color == color.BLACK:
+        elif self.color == colors.BLACK:
             return "O"
         else:
             return "_"

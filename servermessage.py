@@ -119,7 +119,8 @@ class Message:
             content = {"result": f"User {usernames[1]} sucessfully joined user {usernames[0]}'s game. Good luck!"}
 
         elif action == "move":
-            content = {"result": "moved"}
+            username = movehandler.queueMove(value)
+            content = {"result": f"User {username} sucessfully queued a move."}
 
         elif action == "chat":
             content = {"result": "chatted"}
