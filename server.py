@@ -18,6 +18,7 @@ import argparse
 import traceback
 
 import servermessage
+import movehandler
 
 sel = selectors.DefaultSelector()
 players = []
@@ -92,6 +93,7 @@ setup_lsock((host, port))
 
 try:
     while True:
+        movehandler.handle_moves()
         events = sel.select(timeout=None)
         for key, mask in events:
             if key.data is None:

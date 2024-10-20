@@ -92,6 +92,7 @@ def create_request(action, value):
     possibleActions = ["search", "login", "start", "join", "move", "quit"]
     if possibleActions.__contains__(action):
         return fill_text_request(action, value)
+    
     elif action == "double" or action == "negate":
         return dict(
             type="binary/custom-client-binary-type",
