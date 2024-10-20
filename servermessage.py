@@ -100,24 +100,23 @@ class Message:
         """Creates a response based on what request was sent from the client to server.
         Supported actions for json content include search."""
         action = self.request.get("action")
+        value = self.request.get("value")
         if action == "search":
-            query = self.request.get("value")
-            answer = request_search.get(query) or f'No match for "{query}".'
+            answer = request_search.get(value) or f'No match for "{value}".'
             
             content = {"result": answer}
         elif action == "login":
-            username = self.request.get("value")
-            movehandler.login(username)
-            content = {"result": f"Sucessfully logged in user {username}, welcome!"}
+            movehandler.login(value)
+            content = {"result": f"Sucessfully logged in user {value}, welcome!"}
 
         elif action == "start":
-            username = self.request.get("value")
-            movehandler.startGame(username)
-            content = {"result": f"Started fresh game for user {username}. Awaiting opponent."}
+            movehandler.startGame(value)
+            content = {"result": f"Started fresh game for user {value}. Awaiting opponent."}
 
         elif action == "join":
-            username = self.request.get("value")
-            content = {"result": "joined"}
+            usernames = value.split(',')
+            movehandler.join(usernames)
+            content = {"result": f"User {usernames[1]} sucessfully joined user {usernames[0]}'s game. Good luck!"}
 
         elif action == "move":
             content = {"result": "moved"}
