@@ -1,5 +1,3 @@
-import Piece
-
 class Player:
 
     count = 0

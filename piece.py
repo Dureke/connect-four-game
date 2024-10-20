@@ -1,6 +1,6 @@
-import Color
+import color
 
-class Piece(Color):
+class Piece(color):
     count = 0
 
     def __init__(self, color, x, y):
@@ -21,9 +21,9 @@ class Piece(Color):
         return f"Piece [{self.count}]: Color: {self.color}, Location: ({self.x}, {self.y})"
     
     def __str__(self):
-        if self.color == Color.RED:
+        if self.color == color.RED:
             return "X"
-        elif self.color == Color.BLACK:
+        elif self.color == color.BLACK:
             return "O"
         else:
             return "_"
