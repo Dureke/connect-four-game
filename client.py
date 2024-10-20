@@ -39,6 +39,10 @@ def start_connections(server_addr, request):
     events = selectors.EVENT_READ | selectors.EVENT_WRITE
     message = clientmessage.Message(sel, sock, server_addr, request)
     sel.register(sock, events, data=message)
+
+def send_new_message(socket, event, server_addr, request):
+    message = clientmessage.Message(sel, socket, server_addr, request)
+    socket.send()
             
 # parses the required argument of --ip-addr, as well as an optional port number
 def parse_args():
@@ -78,38 +82,12 @@ def parse_args():
 
     return host, port, action, value
 
-def fill_request(reqType, reqEncoding, reqAction, reqValue):
-    return dict(
-        type=reqType,
-        encoding=reqEncoding,
-        content=dict(action=reqAction, value=reqValue),
-    )
-def fill_text_request(reqAction, reqValue):
-    return fill_request("text/json", "utf-8", reqAction, reqValue)
 
-def create_request(action, value):
-    """Creates a protocol for the client request, to be sent to the clientmessage Message."""
-    possibleActions = ["search", "login", "start", "join", "move", "quit"]
-    if possibleActions.__contains__(action):
-        return fill_text_request(action, value)
-    
-    elif action == "double" or action == "negate":
-        return dict(
-            type="binary/custom-client-binary-type",
-            encoding="binary",
-            content= struct.pack('>6si', bytes(action, encoding="utf-8"), int(value))
-        )
-    else:
-        return dict(
-            type="binary/custom-client-binary-type",
-            encoding="binary",
-            content=bytes(action + value, encoding="utf-8"),
-        )
 
 # Start of the main program
 
 host, port, action, value = parse_args()
-request = create_request(action, value)
+request = clientmessage.create_request(action, value)
 start_connections((host, port), request)
 
 try:

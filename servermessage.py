@@ -24,6 +24,7 @@ class Message:
         self.jsonheader = None
         self.request = None
         self.response_created = False
+        self.quit = False
 
     def _set_selector_events_mask(self, mode):
         """Set selector to listen for events: mode is 'r', 'w', or 'rw'."""
@@ -65,7 +66,7 @@ class Message:
                 self._send_buffer = self._send_buffer[sent:]
                 # Close when the buffer is drained. The response has been sent.
                 # if sent and not self._send_buffer:
-                #     self.close()
+                self._set_selector_events_mask("rw")
 
     def _json_encode(self, obj, encoding):
         """Translates json data from string to specificed encoding: utf-8."""
@@ -126,7 +127,7 @@ class Message:
         #     content = {"result": "chatted"}
 
         elif action == "quit":
-            self.close()
+            self.quit = True
             content = {"result": "Connection closing. Goodbye!"}
         else:
             content = {"result": f'Error: invalid action "{action}".'}
@@ -154,6 +155,9 @@ class Message:
             self.read()
         if mask & selectors.EVENT_WRITE:
             self.write()
+        
+        if not self._recv_buffer and not self._send_buffer and self.quit:
+            self.close()
 
     def read(self):
         self._read()
@@ -175,6 +179,10 @@ class Message:
                 self.create_response()
 
         self._write()
+        self.request = None
+        self._jsonheader_len = None
+        self.jsonheader = None
+        self.response_created = None
 
     def close(self):
         print("closing connection to", self.addr)
