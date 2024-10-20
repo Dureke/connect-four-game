@@ -4,6 +4,7 @@ import selectors
 import json
 import io
 import struct
+import movehandler
 
 request_search = {
     # Could modify this to become a database of users?
@@ -104,14 +105,26 @@ class Message:
             answer = request_search.get(query) or f'No match for "{query}".'
             
             content = {"result": answer}
+        elif action == "login":
+            username = self.request.get("value")
+            movehandler.login(username)
+            content = {"result": f"Sucessfully logged in user {username}, welcome!"}
+
+        elif action == "start":
+            username = self.request.get("value")
+            movehandler.startGame(username)
+            content = {"result": f"Started fresh game for user {username}. Awaiting opponent."}
+
         elif action == "join":
             username = self.request.get("value")
-
             content = {"result": "joined"}
+
         elif action == "move":
             content = {"result": "moved"}
+
         elif action == "chat":
             content = {"result": "chatted"}
+
         elif action == "quit":
             self.close()
             content = {"result": "Connection closing."}
