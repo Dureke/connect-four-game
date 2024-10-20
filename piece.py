@@ -1,6 +1,6 @@
 import colors
 
-class Piece(colors):
+class Piece():
     count = 0
 
     def __init__(self, color, x, y, board):

@@ -1,8 +1,8 @@
 import piece
-import rules
+from rules import Rules
 import numpy
 
-class Board(rules):
+class Board(Rules):
 
     count = 0
 
@@ -36,10 +36,10 @@ class Board(rules):
             raise RuntimeError("Illegal Move.")
         x, y = piece.getLocation()
         self.board[x, y] = piece
-        rules.cycleTurn(self)
+        Rules.cycleTurn(self)
 
     def moveAllowed(self, piece):
-        return rules.locationFree(self.board, piece) and rules.turnOrder(self.nextPlayer, piece)
+        return Rules.locationFree(self.board, piece) and Rules.turnOrder(self.nextPlayer, piece)
     
     def __str__(self):
         return numpy.matrix(self.board)
