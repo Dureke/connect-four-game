@@ -19,3 +19,11 @@ class Piece(Color):
     
     def getInfo(self):
         return f"Piece [{self.count}]: Color: {self.color}, Location: ({self.x}, {self.y})"
+    
+    def __str__(self):
+        if self.color == Color.RED:
+            return "X"
+        elif self.color == Color.BLACK:
+            return "O"
+        else:
+            return "_"

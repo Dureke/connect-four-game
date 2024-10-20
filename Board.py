@@ -13,7 +13,6 @@ class Board(Rules):
         self.player2 = player2
         self.board = numpy.empty((6,7), dtype=Piece)
         self.count += 1
-        self.nextPlayer = Color.RED
     
     def getPlayer1(self):
         return self.player1
@@ -32,14 +31,10 @@ class Board(Rules):
             raise RuntimeError("Illegal Move.")
         x, y = piece.getLocation()
         self.board[x, y] = piece
-        self.cycleTurn(self)
-
-    def cycleTurn(self):
-        if self.nextPlayer is Color.RED:
-            self.nextPlayer = Color.BLACK
-        else:
-            self.nextPlayer = Color.RED
+        Rules.cycleTurn(self)
 
     def moveAllowed(self, piece):
         return Rules.locationFree(self.board, piece) and Rules.turnOrder(self.nextPlayer, piece)
     
+    def __str__(self):
+        return numpy.matrix(self.board)
