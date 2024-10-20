@@ -20,6 +20,8 @@ import traceback
 import servermessage
 
 sel = selectors.DefaultSelector()
+players = []
+games = []
 
 def setup_lsock(server_address):
     """Function called before the server event loop. Establishes server listening socket.

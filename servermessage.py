@@ -63,8 +63,8 @@ class Message:
             else:
                 self._send_buffer = self._send_buffer[sent:]
                 # Close when the buffer is drained. The response has been sent.
-                if sent and not self._send_buffer:
-                    self.close()
+                # if sent and not self._send_buffer:
+                #     self.close()
 
     def _json_encode(self, obj, encoding):
         """Translates json data from string to specificed encoding: utf-8."""
@@ -102,9 +102,22 @@ class Message:
         if action == "search":
             query = self.request.get("value")
             answer = request_search.get(query) or f'No match for "{query}".'
+            
             content = {"result": answer}
+        elif action == "join":
+            username = self.request.get("value")
+
+            content = {"result": "joined"}
+        elif action == "move":
+            content = {"result": "moved"}
+        elif action == "chat":
+            content = {"result": "chatted"}
+        elif action == "quit":
+            self.close()
+            content = {"result": "Connection closing."}
         else:
             content = {"result": f'Error: invalid action "{action}".'}
+
         content_encoding = "utf-8"
         response = {
             "content_bytes": self._json_encode(content, content_encoding),
@@ -224,6 +237,18 @@ class Message:
             )
         # Set selector to listen for write events, we're done reading.
         self._set_selector_events_mask("w")
+
+    def join_request(self):
+        return
+    
+    def quit_request(self):
+        return
+    
+    def _create_response_join(self):
+        return
+    
+    def _create_response_quit(self):
+        return
 
     def create_response(self):
         if self.jsonheader["content-type"] == "text/json":
