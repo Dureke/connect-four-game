@@ -3,12 +3,13 @@ import color
 class Piece(color):
     count = 0
 
-    def __init__(self, color, x, y):
+    def __init__(self, color, x, y, board):
         self.color = color
         self.x = x
         self.y = y 
         self.ID = self.count
         self.count += 1
+        self.board = board
 
     def setLocation(self, x, y):
         self.x = x
@@ -20,6 +21,9 @@ class Piece(color):
     def getInfo(self):
         return f"Piece [{self.count}]: Color: {self.color}, Location: ({self.x}, {self.y})"
     
+    def getBoard(self):
+        return self.board
+
     def __str__(self):
         if self.color == color.RED:
             return "X"
