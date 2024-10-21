@@ -7,6 +7,22 @@ playerList = []
 gameList = []
 queuedMoves = [] # piece opject
 
+def getAwaitingGames():
+
+    awaitingGames = []
+    for game in gameList:
+        print(f"game: {game.getPlayer1()} and {game.getPlayer2()}")
+        if not game.getPlayer2():
+            awaitingGames.append(game)
+
+    return awaitingGames
+
+def gamesToUsername(games):
+    usernames = []
+    for game in games:
+        usernames.append(game.getPlayer1().getUsername())
+    return usernames
+
 def handle_moves():
     while queuedMoves:
         piece = queuedMoves.pop()

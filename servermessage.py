@@ -25,6 +25,7 @@ class Message:
         self.request = None
         self.response_created = False
         self.quit = False
+        self.update = False
 
     def _set_selector_events_mask(self, mode):
         """Set selector to listen for events: mode is 'r', 'w', or 'rw'."""
@@ -115,9 +116,16 @@ class Message:
             content = {"result": f"Started fresh game for user {value}. Awaiting opponent."}
 
         elif action == "join":
+            games = movehandler.getAwaitingGames()
+            if not games:
+                content = {"join": "No games."}
+            content = {"join": movehandler.gamesToUsername(games)}
+            print(content)
+
+        elif action == "begin":
             usernames = value.split(',')
             movehandler.join(usernames)
-            content = {"result": f"User {usernames[1]} sucessfully joined user {usernames[0]}'s game. Good luck!"}
+            content = {"result": f"User [{usernames[1]}] sucessfully joined user [{usernames[0]}]'s game. Good luck!"}
 
         elif action == "move":
             username = movehandler.queueMove(value)

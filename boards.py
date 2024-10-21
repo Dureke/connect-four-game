@@ -10,7 +10,7 @@ class Board(Rules):
         self.ID = self.count
         self.player1 = player1
         self.player2 = None
-        self.board = numpy.empty((6,7), dtype=piece)
+        self.board = numpy.empty((6,7))
         self.count += 1
     
     def getPlayer1(self):

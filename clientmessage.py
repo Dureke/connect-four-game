@@ -114,31 +114,50 @@ class Message:
 
     def _process_response_json_content(self):
         content = self.response
-        result = content.get("result")
-        print(f"\n\ngot result: {result}\n\n")
-        if result.__contains__("Connection closing"):
-            self.quit = True
+        if content.get("result"):
+            result = content.get("result")
+            print(f"\n\ngot result: {result}\n\n")
+            if result.__contains__("Connection closing"):
+                self.quit = True
+        elif content.get("join"):
+            result = content.get("join")
+            self.join_a_username(result)
+
+    def join_a_username(self, result):
+        print(f"\n\nPlease join an existing game:\n\n")
+        self.state.set_possible_joins(self.response['join'])
+        print(self.state.get_possible_joins())
 
     def _process_response_binary_content(self):
         content = self.response
         print(f"got response: {repr(content)}")
 
     def create_new_request(self):
-        previous_request = self.request["content"]
+        previous_request = self.request["content"]["action"]
         possible_actions = self.state.get_next_states(previous_request)
         next_action = ""
         try:
             while not next_action and not self.quit:
-                print(f"Please select an action to take!\n"
+                if possible_actions == None:
+                    possible_actions = self.state.no_join()
+                    print("\n\nNo open games available!")
+                print(f"\n\nPlease select an action to take!\n"
                       + f"Possible actions: {possible_actions}")
                 next_action = input()
                 if next_action in possible_actions:
-                    break
+                    if previous_request != 'join':
+                        self.request["content"]["action"] = next_action
+                    else:
+                        username = self.request["content"]["value"]
+                        self.request["content"]["value"] = f"{username},{next_action}"
+                        self.request["content"]["action"] = "begin"
+                        print(self.request["content"]["action"])
+                        print(self.request["content"]["value"])
                 else:
                     next_action = ""
+                
         except Exception as err:
             print(f"Exception: Uncaught error.\n{err}")
-        self.request["content"]["action"] = next_action
         self.queue_request()
         self._request_queued = True
         self._set_selector_events_mask("rw")
