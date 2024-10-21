@@ -6,6 +6,7 @@ import colors
 playerList = []
 gameList = []
 queuedMoves = [] # piece opject
+queuedUpdate = []
 
 def getAwaitingGames():
 
@@ -36,8 +37,8 @@ def getPlayer(username):
             return player
     return None
 
-def addPlayer(username):
-    playerList.append(players.Player(username))
+def addPlayer(username, socket):
+    playerList.append(players.Player(username, socket))
 
 def removePlayer(player):
     playerList.remove(player)
@@ -48,9 +49,11 @@ def addGame(player1, player2):
 def removeGame(board):
     gameList.remove(board)
 
-def login(username):
+def login(username, socket):
     if not getPlayer(username): # no player of that username, register new player
-        addPlayer(username)
+        addPlayer(username, socket)
+    else:
+        getPlayer(username).setSocket(socket)
 
 def startGame(username):
     player = getPlayer(username)
@@ -69,6 +72,19 @@ def findGame(boardID):
         if game.getID == boardID:
             return game
     return None
+
+def findPlayerSocket(socket):
+    for game in queuedUpdate:
+        if game.getPlayer1().getSocket() == socket:
+            return game
+        elif game.getPlayer2().getSocket() == socket:
+            return game
+    return None
+
+def getUpdate(socket):
+    update = findPlayerSocket(socket)
+    queuedUpdate.remove(update)
+    return update
 
 def join(usernames):
     if len(usernames) > 2:

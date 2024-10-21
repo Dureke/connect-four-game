@@ -108,7 +108,7 @@ class Message:
             content = {"result": answer}
             
         elif action == "login":
-            movehandler.login(value)
+            movehandler.login(value, self.sock)
             content = {"result": f"Sucessfully logged in user {value}, welcome!"}
 
         elif action == "start":
@@ -120,7 +120,6 @@ class Message:
             if not games:
                 content = {"join": "No games."}
             content = {"join": movehandler.gamesToUsername(games)}
-            print(content)
 
         elif action == "begin":
             usernames = value.split(',')
@@ -190,7 +189,7 @@ class Message:
         self.request = None
         self._jsonheader_len = None
         self.jsonheader = None
-        self.response_created = None
+        self.response_created = False
 
     def close(self):
         print("closing connection to", self.addr)
