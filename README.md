@@ -9,7 +9,7 @@ This is a simple Connect Four game implemented using Python and sockets.
    - Example: `py Server.py 127.0.0.1` is equivalent to `py Server.py 127.0.0.1 -p 65432`.
    - Use `py Server.py -h` for additional information.
      
-3. **Start one or more clients:** Run the `Client.py` script with 3 required arguments and 1 optional argument.
+3. **Start one or more clients:** Run the `Client.py` script with 3 required arguments.
    - usage: Client.py [-h\] ip-addr port request [value\]
    - First required arg is the the server IP address.
    - Second required arg is the port number of the server the client is connecting to.
