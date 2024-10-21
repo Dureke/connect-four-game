@@ -13,15 +13,11 @@ This is a simple Connect Four game implemented using Python and sockets.
    - usage: Client.py [-h\] ip-addr port request [value\]
    - First required arg is the the server IP address.
    - Second required arg is the port number of the server the client is connecting to.
-   - Third required arg is the action the client wishes from the server. Current supported actions are: search, double, negate, and binary.
-   - Example: `py Client.py 127.0.0.1 65432 search` or `py Client.py 127.0.0.1 65432 search user`.
+   - Third required arg is the action the client wishes from the server. Current supported actions are: join.
+   - Example: `py Client.py 127.0.0.1 65432 join username` or `py Client.py 127.0.0.1 65432 join testUser`.
    - Use `py Client.py -h` for additional information.
      
-4. **Write messages to Server**: In the client terminal, specify the action:value pair (search:keyword, double:int, negate:int, binary:message)
-   - search: Specify a keyword and the server will respond with the result of that keyword. Supported searches are "user" and "game"
-   - double: Specify an integer and the server will respond with the int value doubled. This will be removed in later releases.
-   - negate: Specify an integer and the server will respond with the int value negated. This will be removed in later releases.
-   - binary: Specify a message and the server will respond with the first 10 bytes of that message.
+4. **Write messages to Server**: In the client terminal, follow the prompts given by the client text application. If there is another game hosted by another client, the join action will work. Otherwise, you can create a game with create or quit and disconnect with the quit action.
 
 ~~**How to play:**~~
 ~~1. **Start the server:** Run the `Server.py` script.~~
