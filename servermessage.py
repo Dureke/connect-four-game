@@ -5,6 +5,7 @@ import json
 import io
 import struct
 import movehandler
+from action import Action
 
 request_search = {
     # Could modify this to become a database of users?
@@ -103,41 +104,22 @@ class Message:
         Supported actions for json content include search."""
         action = self.request.get("action")
         value = self.request.get("value")
-        if action == "search":
-            answer = request_search.get(value) or f'No match for "{value}".'
-            content = {"result": answer}
-            
-        elif action == "login":
-            movehandler.login(value, self.sock)
-            content = {"result": f"Sucessfully logged in user {value}, welcome!"}
 
-        elif action == "start":
-            movehandler.startGame(value)
-            content = {"result": f"Started fresh game for user {value}. Awaiting opponent."}
-
-        elif action == "join":
-            games = movehandler.getAwaitingGames()
-            if not games:
-                content = {"join": "No games."}
-            content = {"join": movehandler.gamesToUsername(games)}
-
-        elif action == "begin":
-            usernames = value.split(',')
-            movehandler.join(usernames)
-            content = {"result": f"User [{usernames[1]}] sucessfully joined user [{usernames[0]}]'s game. Good luck!"}
-
-        elif action == "move":
-            username = movehandler.queueMove(value)
-            content = {"result": f"User {username} sucessfully queued a move."}
-
-        # elif action == "chat":
-        #     content = {"result": "chatted"}
-
-        elif action == "quit":
-            self.quit = True
-            content = {"result": "Connection closing. Goodbye!"}
+        action_methods = {
+            Action.SEARCH.value: self._handle_search,
+            Action.LOGIN.value: self._handle_login,
+            Action.START.value: self._handle_start,
+            Action.JOIN.value: self._handle_join,
+            Action.BEGIN.value: self._handle_begin,
+            Action.MOVE.value: self._handle_move,
+            Action.QUIT.value: self._handle_quit,
+            Action.ERROR.value: self._handle_error
+        }
+        
+        if action not in action_methods:
+            content = action_methods[Action.ERROR.value](action)
         else:
-            content = {"result": f'Error: invalid action "{action}".'}
+            content = action_methods[action](value)
 
         content_encoding = "utf-8"
         response = {
@@ -146,6 +128,40 @@ class Message:
             "content_encoding": content_encoding,
         }
         return response
+    
+    def _handle_error(self, input):
+        return {"error": f"Invalid input \"{input}\"."}
+    
+    def _handle_search(self, value):
+        result = request_search.get(value, f'No match for "{value}".')
+        return {"result": result}
+
+    def _handle_login(self, username):
+        movehandler.login(username, self.sock)
+        return {"result": f"Successfully logged in user {username}."}
+
+    def _handle_start(self, username):
+        movehandler.startGame(username)
+        return {"result": f"Started game for user {username}."}
+
+    def _handle_join(self, value):
+        games = movehandler.getAwaitingGames()
+        if not games:
+            return {"join": "No games available."}
+        return {"join": movehandler.gamesToUsername(games)}
+
+    def _handle_begin(self, value):
+        usernames = value.split(',')
+        movehandler.join(usernames)
+        return {"result": f"User {usernames[1]} joined user {usernames[0]}'s game."}
+
+    def _handle_move(self, value):
+        username = movehandler.queueMove(value)
+        return {"result": f"User {username} queued a move."}
+
+    def _handle_quit(self, _):
+        self.quit = True
+        return {"result": "Connection closing. Goodbye!"}
 
     def _create_response_binary_content(self):
         """"""
@@ -249,16 +265,6 @@ class Message:
         else:
             # Binary or unknown content-type
             self.request = data
-            if data.__contains__(b"double"):
-                value = struct.unpack(">6si", data)[1]
-                value *= 2
-                self.request = struct.pack(">6si", bytes("result", encoding="utf-8"), value)
-            elif data.__contains__(b"negate"):
-                value = struct.unpack(">6si", data)[1]
-                value *= -1
-                self.request = struct.pack(">6si", bytes("result", encoding="utf-8"), value)
-            else:
-                self.request = data
             print(
                 f'received {self.jsonheader["content-type"]} request from',
                 self.addr,
@@ -282,15 +288,8 @@ class Message:
         if self.jsonheader["content-type"] == "text/json":
             response = self._create_response_json_content()
         else:
-            if self.request.__contains__(b"result"):
-                response = {
-                    "content_bytes": self.request,
-                    "content_type": "binary/custom-server-binary-type",
-                    "content_encoding": "binary",
-                }
-            else:
-                # Binary or unknown content-type
-                response = self._create_response_binary_content()
+            # Binary or unknown content-type
+            response = self._create_response_binary_content()
         message = self._create_message(**response)
         self.response_created = True
         self._send_buffer += message
