@@ -1,6 +1,6 @@
 import selectors
-from message import Message
-from action import Action
+from server_package.message import Message
+from game.action import Action
 
 class Connection:
     def __init__(self, selector, sock, addr):

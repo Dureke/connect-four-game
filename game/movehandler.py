@@ -1,7 +1,7 @@
-import piece
-import players
-import boards
-import colors
+import game.piece as piece
+import game.players as players
+import game.boards as boards
+import game.colors as colors
 
 playerList = []
 gameList = []

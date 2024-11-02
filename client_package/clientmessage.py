@@ -5,7 +5,7 @@ import json
 import io
 import struct
 
-import clientstate
+import client_package.clientstate as clientstate
 
 def fill_request(reqType, reqEncoding, reqAction, reqValue):
     return dict(

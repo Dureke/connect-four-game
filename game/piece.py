@@ -1,4 +1,4 @@
-import colors
+import game.colors as colors
 
 class Piece():
     count = 0

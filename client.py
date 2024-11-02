@@ -18,7 +18,7 @@ import struct
 import argparse
 import traceback
 
-import clientmessage
+import client_package.clientmessage as clientmessage
 
 sel = selectors.DefaultSelector()
 

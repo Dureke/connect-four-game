@@ -1,5 +1,5 @@
-import piece
-from rules import Rules
+from game.piece import Piece
+from game.rules import Rules
 import numpy
 
 class Board(Rules):

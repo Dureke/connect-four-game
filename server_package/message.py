@@ -3,8 +3,8 @@ import io
 import struct
 import sys
 
-import movehandler
-from action import Action
+import game.movehandler as movehandler
+from game.action import Action
 
 request_search = {
     "user": "No existing users yet!",

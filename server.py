@@ -17,8 +17,8 @@ import sys
 import argparse
 import traceback
 
-import serverconnection
-import movehandler
+from server_package.connection import Connection
+import game.movehandler as movehandler
 
 sel = selectors.DefaultSelector()
 players = []
@@ -55,7 +55,7 @@ def accept_wrapper(sock):
     conn, addr = sock.accept()
     print(f"Address [{addr}] sucessfully connected.")
     conn.setblocking(False)
-    connection = serverconnection.Connection(sel, conn, addr)
+    connection = Connection(sel, conn, addr)
     events = selectors.EVENT_READ | selectors.EVENT_WRITE
     sel.register(conn, events, data=connection)
 
