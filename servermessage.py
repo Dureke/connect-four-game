@@ -272,18 +272,6 @@ class Message:
         # Set selector to listen for write events, we're done reading.
         self._set_selector_events_mask("w")
 
-    def join_request(self):
-        return
-    
-    def quit_request(self):
-        return
-    
-    def _create_response_join(self):
-        return
-    
-    def _create_response_quit(self):
-        return
-
     def create_response(self):
         if self.jsonheader["content-type"] == "text/json":
             response = self._create_response_json_content()

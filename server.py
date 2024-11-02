@@ -17,12 +17,13 @@ import sys
 import argparse
 import traceback
 
-import servermessage
+import serverconnection
 import movehandler
 
 sel = selectors.DefaultSelector()
 players = []
 games = []
+connections = []
 
 def setup_lsock(server_address):
     """Function called before the server event loop. Establishes server listening socket.
@@ -54,9 +55,9 @@ def accept_wrapper(sock):
     conn, addr = sock.accept()
     print(f"Address [{addr}] sucessfully connected.")
     conn.setblocking(False)
-    message = servermessage.Message(sel, conn, addr)
-    events = selectors.EVENT_READ # | selectors.EVENT_WRITE
-    sel.register(conn, events, data=message)
+    connection = serverconnection.Connection(sel, conn, addr)
+    events = selectors.EVENT_READ | selectors.EVENT_WRITE
+    sel.register(conn, events, data=connection)
 
 # parses the required argument of --ip-addr, as well as an optional port number
 def parse_args():
