@@ -58,11 +58,14 @@ class Connection:
 
         # Get the task and pass it later as a global server action
         server_task = self.message.get_server_task()
+        logging.debug(f"Server tasks are: {server_task}")
         if server_task == Action.QUIT.value:
             self.quit = True
             self._set_selector_events_mask("w")
         elif "login" in server_task:
             self.username = server_task[5:]
+        elif "board" in server_task:
+            self.task.append(server_task)
         else:
             self.task.append(server_task)
         
@@ -106,8 +109,8 @@ class Connection:
         """
         Called by the server, sends local commands that require global server actions.
         Returns an array of all built-up actions, before clearing buffered tasks
+        Possible actions for the server: board updates, board game start, board game end
         """
-        server_task = []
-        server_task.copy(self.task)
+        server_task = self.task.copy()
         self.task = []
         return server_task

@@ -23,7 +23,7 @@ class Message():
         self.request = None
         self.response_created = False
         self.response = b""
-        self.server_task = None
+        self.server_task = ""
         self.sock = sock
         self.addr = addr
 
@@ -194,10 +194,18 @@ class Message():
             return {"join": "No games available."}
         return {"join": movehandler.gamesToUsername(games)}
 
-    def _handle_begin(self, value):
-        usernames = value.split(',')
-        movehandler.join(usernames)
-        return {"result": f"User {usernames[1]} joined user {usernames[0]}'s game."}
+    def _handle_begin(self, value): 
+        if value[:7] != "waiting":
+            usernames = value.split(',')
+            movehandler.join(usernames)
+            return {"result": f"User {usernames[1]} joined user {usernames[0]}'s game."}
+        else:
+            username = value[7:]
+            logging.info(f"Checking to see if player2 joined: {movehandler.has_player2_joined(username)}")
+            if movehandler.has_player2_joined(username):
+                return {"start": f"{movehandler.has_player2_joined(username)}"}
+            # check if anyone joined, if so start game
+            return {"begin": "waiting"}
 
     def _handle_move(self, value):
         username = movehandler.queueMove(value)

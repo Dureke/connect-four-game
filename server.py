@@ -24,7 +24,7 @@ import game.movehandler as movehandler
 sel = selectors.DefaultSelector()
 players = []
 games = []
-connections = {} # player : board
+connections = {} # player : (connection, board)
 
 
 logging.basicConfig(level=logging.DEBUG)
@@ -62,7 +62,13 @@ def accept_wrapper(sock):
     connection = Connection(sel, conn, addr)
     events = selectors.EVENT_READ | selectors.EVENT_WRITE
     sel.register(conn, events, data=connection)
-    connections[addr] = connection
+    connections[addr] = connection, connection.get_username
+
+def process_updates(tasks):
+    for task in tasks:
+        # do something
+        return
+
 
 # parses the required argument of --ip-addr, as well as an optional port number
 def parse_args():
@@ -111,6 +117,12 @@ try:
                 Then, continue normal process of reading/writing
                 """
                 connection = key.data
+                tasks = connection.server_update() # array of board updates 
+                """this connection sends a board update, process_updates takes this, updates the board associated
+                with the username
+                The server then checks the username if its board is the same as the local board
+                if not, send a message to update it"""
+                process_updates(tasks)
                 try:
                     connection.process_events(mask)
                 except Exception:

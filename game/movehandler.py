@@ -2,26 +2,29 @@ import game.piece as piece
 import game.players as players
 import game.boards as boards
 import game.colors as colors
+import logging
 
 playerList = []
 gameList = []
 queuedMoves = [] # piece opject
 queuedUpdate = []
 
+
 def getAwaitingGames():
 
     awaitingGames = []
     for game in gameList:
-        print(f"game: {game.getPlayer1()} and {game.getPlayer2()}")
         if not game.getPlayer2():
             awaitingGames.append(game)
 
+    logging.info(f"Retrieved {awaitingGames.__len__()} free games.")
     return awaitingGames
 
 def gamesToUsername(games):
     usernames = []
     for game in games:
         usernames.append(game.getPlayer1().getUsername())
+    logging.info(f"Translating game into {usernames}")
     return usernames
 
 def handle_moves():
@@ -73,6 +76,18 @@ def findGame(boardID):
             return game
     return None
 
+def has_player2_joined(username):
+    for game in gameList:
+        if game.getPlayer1() and game.getPlayer2():
+            logging.debug(f"player1: {game.getPlayer1().getUsername()}, player2: {game.getPlayer2().getUsername()}")
+        # Only games that have both player1 and player2
+            if game.getPlayer1().getUsername() == username:
+                # if this game matches the username searching for their game, return that
+                return game.getID()
+            elif game.getPlayer2().getUsername() == username:
+                return game.getID()
+    return None
+
 def findPlayerSocket(socket):
     for game in queuedUpdate:
         if game.getPlayer1().getSocket() == socket:
@@ -94,6 +109,7 @@ def join(usernames):
 
     board = findEmptyGame(host)
     if board:
+        logging.info(f"Found board: game between {host.getUsername()} and {joiner.getUsername()} begins.")
         board.setPlayer2(joiner)
     else:
         raise Exception(f"No open games for host {host}.")

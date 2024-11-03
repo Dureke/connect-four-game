@@ -17,22 +17,24 @@ import selectors
 import struct
 import argparse
 import traceback
+import logging
 
 import client_package.clientmessage as clientmessage
 
 sel = selectors.DefaultSelector()
+logging.basicConfig(level=logging.DEBUG)
 
 def start_connections(server_addr, request):
     """Function called before the client event loop. Establishes connection to server."""
    
-    print("starting connection to", server_addr)
+    logging.info(f"starting connection to {server_addr}")
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     sock.setblocking(False)
     
     try: # make into loop to try 3 times before failing and stopping?
         errno = sock.connect_ex(server_addr)
     except Exception as err:
-        print(f"Connection failed. [{errno}]:\n{err}.")
+        logging.exception(f"Connection failed. [{errno}]:\n{err}.")
         sock.close()
         return
 
@@ -99,20 +101,17 @@ try:
                 try:
                     message.process_events(mask)
                 except Exception:
-                    print(
-                        "main: error: exception for",
-                        f"{message.addr}:\n{traceback.format_exc()}",
-                    )
+                    logging.exception(f"main: error: exception for {message.addr}:\n{traceback.format_exc()}")
                     message.close()
 
         if not sel.get_map():
             break
 except KeyboardInterrupt:
-    print(f"Exception: Caught keyboard interrupt, exiting.")
+    logging.exception(f"Exception: Caught keyboard interrupt, exiting.")
 except ConnectionError as err:
-    print(f"Exception: Caught a connection error, exiting.\n{err}")
+    logging.exception(f"Exception: Caught a connection error, exiting.\n{err}")
 except Exception as err:
-    print(f"Exception: Uncaught error, exiting.\n{err}.")
+    logging.exception(f"Exception: Uncaught error, exiting.\n{err}.")
 finally:
     sel.close()
     sys.exit(0)

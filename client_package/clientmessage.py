@@ -4,6 +4,11 @@ import selectors
 import json
 import io
 import struct
+import logging
+import time
+from game.status import Status
+from game.boards import Board
+from game.action import Action
 
 import client_package.clientstate as clientstate
 
@@ -49,6 +54,11 @@ class Message:
         self.response = None
         self.state = clientstate.State()
         self.quit = False
+        self.username = request["content"]["value"]
+
+        self.gameBoard = None
+        self.gameStatus = None
+        self.isUserTurn = False
 
     def _set_selector_events_mask(self, mode):
         """Set selector to listen for events: mode is 'r', 'w', or 'rw'."""
@@ -77,7 +87,7 @@ class Message:
 
     def _write(self):
         if self._send_buffer:
-            print("sending", repr(self._send_buffer), "to", self.addr)
+            logging.info(f"sending {repr(self._send_buffer)} to {self.addr}")
             try:
                 # Should be ready to write
                 sent = self.sock.send(self._send_buffer)
@@ -114,67 +124,118 @@ class Message:
 
     def _process_response_json_content(self):
         content = self.response
+        logging.info(f"Processing contents {content}")
         if content.get("result"):
             result = content.get("result")
             print(f"\n\ngot result: {result}\n\n")
             if result.__contains__("Connection closing"):
                 self.quit = True
-        elif content.get("join"):
-            result = content.get("join")
-            self.join_a_username(result)
+        elif content.get("join"): # returns list of possible joins
+            username = content.get("join")
+            self.join_a_username(username)
+        elif content.get("begin"):
+            value = content["begin"]
+            if value == Status.WAITING.value:
+                logging.info("Ack: Still waiting...")
+            else: # We have a connection!
+                self.gameStatus = Status.BEGIN
 
     def join_a_username(self, result):
         print(f"\n\nPlease join an existing game:\n\n")
+        username = self.response['join']
+        if username == "No games available.":
+            return
         self.state.set_possible_joins(self.response['join'])
         print(self.state.get_possible_joins())
 
     def _process_response_binary_content(self):
         content = self.response
-        print(f"got response: {repr(content)}")
+        logging.info(f"got response: {repr(content)}")
 
     def create_new_request(self):
+        logging.info("Creating a new request...")
         previous_request = self.request["content"]["action"]
         possible_actions = self.state.get_next_states(previous_request)
         next_action = ""
         try:
-            while not next_action and not self.quit:
-                if possible_actions == None:
+            while not next_action and not self.quit and not self.gameStatus:
+                """while we dont have a valid action and we aren't quitting
+                if possible actions are empty, it means we tried to join when theres nothing to join
+                if the next action is valid, set it as the action to be taken
+                if the previous action was start, they need to wait for someone to join
+                send periodic request from server to see if anyone joined
+                if previous action was to join, and it was sucessful, they need to 
+                begin the game state
+                """
+                if not possible_actions:
                     possible_actions = self.state.no_join()
                     print("\n\nNo open games available!")
+                    self.request["content"]["action"] = "None"
                 print(f"\n\nPlease select an action to take!\n"
                       + f"Possible actions: {possible_actions}")
+                logging.info(f"Before request contents: {self.request}")
                 next_action = input()
                 if next_action in possible_actions:
-                    if previous_request != 'join':
-                        self.request["content"]["action"] = next_action
-                    else:
+                    self.request["content"]["action"] = next_action
+                    if next_action == Action.START.value:
+                        self.gameStatus = Status.WAITING
+                        self.gameBoard = Board(self.username, next_action)
+                        self.request["content"]["value"] = self.username
+                        self.queue_request()
+                        self._request_queued = True
+                        self._set_selector_events_mask("rw")
+                    if previous_request == Action.JOIN.value:
+                        self.gameStatus = Status.WAITING
+                        self.gameBoard = Board(self.username, next_action)
                         username = self.request["content"]["value"]
-                        self.request["content"]["value"] = f"{username},{next_action}"
+                        self.request["content"]["value"] = f"{next_action},{self.username}"
                         self.request["content"]["action"] = "begin"
-                        print(self.request["content"]["action"])
-                        print(self.request["content"]["value"])
+                        self.queue_request()
+                        self._request_queued = True
+                        self._set_selector_events_mask("rw")
+                        
+                # elif next_action in self.state.get_possible_joins():
+                #     username = self.request["content"]["value"]
+                #     self.request["content"]["value"] = f"{self.username},{next_action}"
+                #     self.request["content"]["action"] = "begin"
+                #     self.queue_request()
+                #     self._request_queued = True
+                #     self._set_selector_events_mask("rw")
                 else:
                     next_action = ""
-                
+
+                logging.info(f"After request contents: {self.request}")        
         except Exception as err:
-            print(f"Exception: Uncaught error.\n{err}")
-        self.queue_request()
-        self._request_queued = True
-        self._set_selector_events_mask("rw")
+            logging.exception(f"Exception: Uncaught error.\n{err}")
+        if not self.gameStatus:
+            self.queue_request()
+            self._request_queued = True
+            self._set_selector_events_mask("rw")
 
     def process_events(self, mask):
+        logging.info(f"Process events occurring for user {self.username}")
+
         if mask & selectors.EVENT_READ:
             self.read()
         if mask & selectors.EVENT_WRITE:
             self.write()
         
         #create another event read, if theres nothing queued and no response waiting
-        if not self.response and not self._request_queued:
+        if self.gameStatus == Status.WAITING:
+            time.sleep(2.5)
+            logging.debug("Status waiting, seeing if player has joined lobby...\n\n\n\n\n")
+            self.request = fill_text_request("begin", Status.WAITING.value+self.username)
+            self.queue_request()
+            self._request_queued = True
+            self._set_selector_events_mask("rw")
+        elif not self.response and not self._request_queued:
             self.create_new_request()
+            
         if not self._recv_buffer and self._send_buffer and self.quit:
             self.close()
 
     def read(self):
+        logging.debug("begin reading...")
         self._read()
 
         if self._jsonheader_len is None:
@@ -189,6 +250,7 @@ class Message:
                 self.process_response()
 
     def write(self):
+        logging.debug("begin writing...")
         if not self._request_queued:
             self.queue_request()
 
@@ -200,22 +262,15 @@ class Message:
                 self._set_selector_events_mask("r")
 
     def close(self):
-        print("closing connection to", self.addr)
+        logging.info(f"closing connection to {self.addr}")
         try:
             self.selector.unregister(self.sock)
         except Exception as e:
-            print(
-                f"error: selector.unregister() exception for",
-                f"{self.addr}: {repr(e)}",
-            )
-
+            logging.exception(f"error: selector.unregister() exception for {self.addr}: {repr(e)}")
         try:
             self.sock.close()
         except OSError as e:
-            print(
-                f"error: socket.close() exception for",
-                f"{self.addr}: {repr(e)}",
-            )
+            logging.exception(f"error: socket.close() exception for {self.addr}: {repr(e)}")
         finally:
             # Delete reference to socket object for garbage collection
             self.sock = None
@@ -273,19 +328,17 @@ class Message:
         if self.jsonheader["content-type"] == "text/json":
             encoding = self.jsonheader["content-encoding"]
             self.response = self._json_decode(data, encoding)
-            print("received response", repr(self.response), "from", self.addr)
+            logging.info(f"received response {repr(self.response)} from {self.addr}")
             self._process_response_json_content()
         else:
             # Binary or unknown content-type
             self.response = data
-            print(
-                f'received {self.jsonheader["content-type"]} response from',
-                self.addr,
-            )
+            logging.info(f'received {self.jsonheader["content-type"]} response from {self.addr}')
+
             if self.response.__contains__(b"result"):
-                print(f"got response: {repr(self.response)}")
+                logging.info(f"got response: {repr(self.response)}")
                 value = struct.unpack(">6si", self.response)[1]
-                print(f"result: {value}")
+                logging.info(f"result: {value}")
             else:
                 self._process_response_binary_content()
         # Close when response has been processed

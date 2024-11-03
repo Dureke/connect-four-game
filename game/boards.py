@@ -1,10 +1,11 @@
 from game.piece import Piece
 from game.rules import Rules
+from game.status import Status
 import numpy
 
 class Board(Rules):
 
-    count = 0
+    count = 1
 
     def __init__(self, player1, player2=None):
         self.ID = self.count
@@ -12,6 +13,7 @@ class Board(Rules):
         self.player2 = player2
         self.board = numpy.empty((6,7))
         self.count += 1
+        self.status = Status.WAITING
     
     def getPlayer1(self):
         return self.player1
