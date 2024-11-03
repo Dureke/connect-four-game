@@ -58,6 +58,7 @@ def accept_wrapper(sock):
     connection = Connection(sel, conn, addr)
     events = selectors.EVENT_READ | selectors.EVENT_WRITE
     sel.register(conn, events, data=connection)
+    connections.append(connection)
 
 # parses the required argument of --ip-addr, as well as an optional port number
 def parse_args():
@@ -100,15 +101,16 @@ try:
             if key.data is None:
                 accept_wrapper(key.fileobj)
             else:
-                message = key.data
+                connection = key.data
                 try:
-                    message.process_events(mask)
+                    connection.process_events(mask)
                 except Exception:
                     print(
                         "Exception: exception for",
-                        f"{message.addr}:\n{traceback.format_exc()}",
+                        f"{connection.addr}:\n{traceback.format_exc()}",
                     )
-                    message.close()
+                    connection.close()
+                    connections.remove(connection)
 except KeyboardInterrupt:
     print(f"Exception: Caught keyboard interrupt, exiting.")
 except ConnectionError as err:
