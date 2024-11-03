@@ -16,6 +16,7 @@ import selectors
 import sys
 import argparse
 import traceback
+import logging
 
 from server_package.connection import Connection
 import game.movehandler as movehandler
@@ -24,6 +25,8 @@ sel = selectors.DefaultSelector()
 players = []
 games = []
 connections = []
+
+logging.basicConfig(level=logging.DEBUG)
 
 def setup_lsock(server_address):
     """Function called before the server event loop. Establishes server listening socket.
@@ -37,10 +40,10 @@ def setup_lsock(server_address):
         lsock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         lsock.bind(server_address)
     except socket.error:
-        print(f"Exception: Input address [{server_address}] not valid, exiting.")
+        logging.exception(f"Exception: Input address [{server_address}] not valid, exiting.")
         sys.exit(1)
     lsock.listen()
-    print(f"listening on {server_address}.")
+    logging.info(f"listening on {server_address}.")
     lsock.setblocking(False)
     sel.register(lsock, selectors.EVENT_READ, data=None)
 
@@ -53,7 +56,7 @@ def accept_wrapper(sock):
     Example:   selectors.selector().SelectorKey.fileobj"""
 
     conn, addr = sock.accept()
-    print(f"Address [{addr}] sucessfully connected.")
+    logging.info(f"Address [{addr}] sucessfully connected.")
     conn.setblocking(False)
     connection = Connection(sel, conn, addr)
     events = selectors.EVENT_READ | selectors.EVENT_WRITE
@@ -105,18 +108,15 @@ try:
                 try:
                     connection.process_events(mask)
                 except Exception:
-                    print(
-                        "Exception: exception for",
-                        f"{connection.addr}:\n{traceback.format_exc()}",
-                    )
+                    logging.exception(f"Exception: exception for {connection.addr}:\n{traceback.format_exc()}")
                     connection.close()
                     connections.remove(connection)
 except KeyboardInterrupt:
-    print(f"Exception: Caught keyboard interrupt, exiting.")
+    logging.exception(f"Exception: Caught keyboard interrupt, exiting.")
 except ConnectionError as err:
-    print(f"Exception: Caught a connection error, exiting.\n{err}")
+    logging.exception(f"Exception: Caught a connection error, exiting.\n{err}")
 except Exception as err:
-    print(f"Exception: Uncaught error.\n{err}.")
+    logging.exception(f"Exception: Uncaught error.\n{err}.")
 finally:
     sel.close()
     sys.exit(0)

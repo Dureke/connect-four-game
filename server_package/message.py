@@ -2,6 +2,7 @@ import json
 import io
 import struct
 import sys
+import logging
 
 import game.movehandler as movehandler
 from game.action import Action
@@ -120,7 +121,7 @@ class Message():
         return response
     
     def process_protoheader(self):
-        print("ding1")
+        logging.debug("Creating protoheader for message.")
         hdrlen = 2
         if len(self.buffer) >= hdrlen:
             self._jsonheader_len = struct.unpack(
@@ -129,7 +130,7 @@ class Message():
             self.buffer = self.buffer[hdrlen:]
 
     def process_jsonheader(self):
-        print("ding2")
+        logging.debug("Creating json header for message.")
         hdrlen = self._jsonheader_len
         if len(self.buffer) >= hdrlen:
             self.jsonheader = self._json_decode(
@@ -154,16 +155,14 @@ class Message():
         if self.jsonheader["content-type"] == "text/json":
             encoding = self.jsonheader["content-encoding"]
             self.request = self._json_decode(data, encoding)
-            print("received request", repr(self.request), "from", self.addr)
+            logging.info(f"received request {repr(self.request)} from {self.addr}")
         else:
             # Binary or unknown content-type
             self.request = data
-            print(
-                f'received {self.jsonheader["content-type"]} request from',
-                self.addr,
-            )
+            logging.info(f'received {self.jsonheader["content-type"]} request from {self.addr}')
 
     def create_response(self):
+        logging.debug("Assembling a response.")
         if self.jsonheader["content-type"] == "text/json":
             response = self._create_response_json_content()
         else:

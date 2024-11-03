@@ -1,4 +1,5 @@
 import selectors
+import logging
 from server_package.message import Message
 from game.action import Action
 
@@ -64,12 +65,12 @@ class Connection:
     def write(self):
         """Sends data within self._send_buffer data to client."""
         if self.message != None:
-            print(f"added {self.message.get_response()}")
+            logging.debug(f"added {self.message.get_response()}")
             self._send_buffer += self.message.get_response()
             self.message = None # We're done with this message, discard it
 
         if self._send_buffer:
-            print("sending", repr(self._send_buffer), "to", self.addr)
+            logging.info(f"sending {repr(self._send_buffer)} to {self.addr}")
             try:
                 sent = self.sock.send(self._send_buffer)
                 self._send_buffer = self._send_buffer[sent:]
@@ -78,22 +79,16 @@ class Connection:
                 pass
 
     def close(self):
-        print("closing connection to", self.addr)
+        logging.info(f"closing connection to {self.addr}")
         try:
             self.selector.unregister(self.sock)
         except Exception as e:
-            print(
-                f"error: selector.unregister() exception for",
-                f"{self.addr}: {repr(e)}",
-            )
+            logging.exception(f"error: selector.unregister() exception for {self.addr}: {repr(e)}")
 
         try:
             self.sock.close()
         except OSError as e:
-            print(
-                f"error: socket.close() exception for",
-                f"{self.addr}: {repr(e)}",
-            )
+            logging.exception(f"error: socket.close() exception for {self.addr}: {repr(e)}")
         finally:
             # Delete reference to socket object for garbage collection
             self.sock = None
