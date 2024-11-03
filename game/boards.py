@@ -6,10 +6,10 @@ class Board(Rules):
 
     count = 0
 
-    def __init__(self, player1, player2):
+    def __init__(self, player1, player2=None):
         self.ID = self.count
         self.player1 = player1
-        self.player2 = None
+        self.player2 = player2
         self.board = numpy.empty((6,7))
         self.count += 1
     

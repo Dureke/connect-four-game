@@ -181,6 +181,7 @@ class Message():
 
     def _handle_login(self, username):
         movehandler.login(username, self.sock)
+        self.server_task = f"login:{username}"
         return {"result": f"Successfully logged in user {username}."}
 
     def _handle_start(self, username):
@@ -204,4 +205,5 @@ class Message():
 
     def _handle_quit(self, _):
         self.quit = True
+        self.server_task = Action.QUIT.value
         return {"result": "Connection closing. Goodbye!"}

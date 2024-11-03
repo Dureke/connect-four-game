@@ -24,7 +24,8 @@ import game.movehandler as movehandler
 sel = selectors.DefaultSelector()
 players = []
 games = []
-connections = []
+connections = {} # player : board
+
 
 logging.basicConfig(level=logging.DEBUG)
 
@@ -61,7 +62,7 @@ def accept_wrapper(sock):
     connection = Connection(sel, conn, addr)
     events = selectors.EVENT_READ | selectors.EVENT_WRITE
     sel.register(conn, events, data=connection)
-    connections.append(connection)
+    connections[addr] = connection
 
 # parses the required argument of --ip-addr, as well as an optional port number
 def parse_args():
@@ -98,19 +99,24 @@ setup_lsock((host, port))
 
 try:
     while True:
+        # Global tasks, assigning tasks given by its branching connections. Updates games, tells which connections need updating
         movehandler.handle_moves()
         events = sel.select(timeout=None)
         for key, mask in events:
             if key.data is None:
                 accept_wrapper(key.fileobj)
             else:
+                """
+                If this connection needs to be updated, then tell this connection to update its client connection
+                Then, continue normal process of reading/writing
+                """
                 connection = key.data
                 try:
                     connection.process_events(mask)
                 except Exception:
                     logging.exception(f"Exception: exception for {connection.addr}:\n{traceback.format_exc()}")
                     connection.close()
-                    connections.remove(connection)
+                    connections[connection.get_address()] = None
 except KeyboardInterrupt:
     logging.exception(f"Exception: Caught keyboard interrupt, exiting.")
 except ConnectionError as err:

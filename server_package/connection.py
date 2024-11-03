@@ -13,6 +13,13 @@ class Connection:
         self.quit = False
         self.message = None
         self.task = []
+        self.username = None
+    
+    def get_username(self):
+        return self.username
+    
+    def get_address(self):
+        return self.addr
     
     def _set_selector_events_mask(self, mode):
         """Set selector to listen for events: mode is 'r', 'w', or 'rw'."""
@@ -54,6 +61,8 @@ class Connection:
         if server_task == Action.QUIT.value:
             self.quit = True
             self._set_selector_events_mask("w")
+        elif "login" in server_task:
+            self.username = server_task[5:]
         else:
             self.task.append(server_task)
         
