@@ -71,8 +71,9 @@ def findEmptyGame(player):
     return None
 
 def findGame(boardID):
+    logging.info(f"Searching {gameList}")
     for game in gameList:
-        if game.getID == boardID:
+        if game.getID() == boardID:
             return game
     return None
 
@@ -122,14 +123,16 @@ def queueMove(value):
     x, y = translateXY(parsed_value[2], parsed_value[3])
     board = translateBoardID(parsed_value[4])
 
+    board.swap_turns()
+
     queuedMoves.append(piece.Piece(color, x, y, board))
     return username
 
 def translateColor(string):
-    if string == "red":
-        return colors.RED
+    if string == "1":
+        return colors.RED.value
     else:
-        return colors.BLACK
+        return colors.BLACK.value
     
 def translateXY(stringX, stringY):
     return int(stringX), int(stringY)

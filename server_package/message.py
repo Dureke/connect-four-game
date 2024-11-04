@@ -94,6 +94,7 @@ class Message():
             Action.BEGIN.value: self._handle_begin,
             Action.MOVE.value: self._handle_move,
             Action.QUIT.value: self._handle_quit,
+            Action.BOARD.value: self._handle_board,
             Action.ERROR.value: self._handle_error
         }
         
@@ -190,7 +191,7 @@ class Message():
 
     def _handle_join(self, value):
         games = movehandler.getAwaitingGames()
-        if not games:
+        if not games: 
             return {"join": "No games available."}
         return {"join": movehandler.gamesToUsername(games)}
 
@@ -203,13 +204,23 @@ class Message():
             username = value[7:]
             logging.info(f"Checking to see if player2 joined: {movehandler.has_player2_joined(username)}")
             if movehandler.has_player2_joined(username):
-                return {"start": f"{movehandler.has_player2_joined(username)}"}
+                board_ID = movehandler.has_player2_joined(username)
+                logging.info(f"Retrieving player1 from game {board_ID}")
+                player1 = movehandler.findGame(board_ID).getPlayer1().getUsername()
+                return {"start": f"{player1},{board_ID}"}
             # check if anyone joined, if so start game
             return {"begin": "waiting"}
 
     def _handle_move(self, value):
+        # username,color,x,y,boardID
         username = movehandler.queueMove(value)
+
         return {"result": f"User {username} queued a move."}
+    
+    def _handle_board(self, value):
+        board = movehandler.findGame(int(value))
+        nextPlayer = board.getCurrentPlayerTurn().getUsername()
+        return {"board": f"{nextPlayer}, {board.getBoard()}"}
 
     def _handle_quit(self, _):
         self.quit = True

@@ -8,4 +8,5 @@ class Action(Enum):
     BEGIN = "begin"
     MOVE = "move"
     QUIT = "quit"
+    BOARD = "board"
     ERROR = "error"
