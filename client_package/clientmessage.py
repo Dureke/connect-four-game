@@ -168,6 +168,7 @@ class Message:
             if (board != self.gameBoard).any():
                 logging.info(f"Board was updated. Updating local board to match servers.")
                 self.gameBoard = board.copy()
+            print("\n\n\n\n\n\n",numpy.matrix(self.gameBoard), f"current turn: {current_turn}")
                 
 
     def join_a_username(self, result):

@@ -6,18 +6,30 @@ This is a simple Connect Four game implemented using Python and sockets.
    - usage: Server.py [-h\] ip-addr [port\]
    - First required arg is the server IP address.
    - First optional arg is the port number of the server, default value set to 65432.
-   - Example: `py Server.py 127.0.0.1` is equivalent to `py Server.py 127.0.0.1 -p 65432`.
+   - Example: `py Server.py 127.0.0.1` is equivalent to `py Server.py 127.0.0.1 65432`.
    - Use `py Server.py -h` for additional information.
      
-3. **Start one or more clients:** Run the `Client.py` script with 3 required arguments.
-   - usage: Client.py [-h\] ip-addr port request [value\]
+3. **Start one or more clients:** Run the `Client.py` script with 4 required arguments.
+   - usage: Client.py [-h\] ip-addr port request login username
    - First required arg is the the server IP address.
    - Second required arg is the port number of the server the client is connecting to.
-   - Third required arg is the action the client wishes from the server. Current supported actions are: join.
-   - Example: `py Client.py 127.0.0.1 65432 join username` or `py Client.py 127.0.0.1 65432 join testUser`.
+   - Third required arg is the command login.
+   - Forth required arg is the username that you'd login as.
+   - Example: `py Client.py 127.0.0.1 65432 login username` or `py Client.py 127.0.0.1 65432 login testUser`.
    - Use `py Client.py -h` for additional information.
      
 4. **Write messages to Server**: In the client terminal, follow the prompts given by the client text application. If there is another game hosted by another client, the join action will work. Otherwise, you can create a game with create or quit and disconnect with the quit action.
+
+Example Series of Inputs:
+- Run `py server.py 127.0.0.1 65432`
+- Run `py client.py 127.0.0.1 65432 login user1`
+- Run `py client.py 127.0.0.1 65432 login user2`
+- In terminal with user1, type `start`
+- In terminal with user2, type `join`
+- In terminal with user2, type `user1`
+- In terminal with user1, give a move (This can by anything at the moment)
+
+The clients will periodically ask the server for updates on the board, as well as letting the clients know whose turn it is. After a user makes a move, the server will swap whose turn it is, letting the other client know it can make a move. There's a bug that is causing the same user to repeatively make a move. This will be fixed in a later update.
 
 ~~**How to play:**~~
 ~~1. **Start the server:** Run the `Server.py` script.~~
