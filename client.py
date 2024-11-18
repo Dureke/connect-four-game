@@ -18,12 +18,13 @@ import struct
 import argparse
 import traceback
 import logging
+import random
 
 import client_package.clientmessage as clientmessage
 
 sel = selectors.DefaultSelector()
 # logging.basicConfig(level=logging.DEBUG)
-count = 1
+
 
 def start_connections(server_addr, request):
     """Function called before the client event loop. Establishes connection to server."""
@@ -90,8 +91,7 @@ def parse_args():
         action = args['action']
 
     if not args['value']:
-        value = f"user{count}"
-        count += 1
+        value = f"user{random.randint(0,1000)}"
     else:
         value = args['value']
 
