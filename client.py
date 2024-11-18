@@ -74,7 +74,7 @@ def parse_args():
     args = vars(parser.parse_args())
     
     if not args['ip']:
-        host = '0.0.0.0'
+        host = '127.0.0.1'
     else:
         host = args['ip']
 
