@@ -2,19 +2,19 @@
 
 This is a simple Connect Four game implemented using Python and sockets.
 **How to run:**
-1. **Start the server:** Run the `Server.py` script with 1 required argument and 1 optional argument.
-   - usage: Server.py [-h\] ip-addr [port\]
-   - First required arg is the server IP address.
-   - First optional arg is the port number of the server, default value set to 65432.
-   - Example: `py Server.py 127.0.0.1` is equivalent to `py Server.py 127.0.0.1 65432`.
+1. **Start the server:** Run the `Server.py` script with 2 optional arguments.
+   - usage: server.py [-h\] -i ip-addr -p [port\]
+   - First optional arg is the server IP address, default value set to 0.0.0.0.
+   - Second optional arg is the port number of the server, default value set to 65432.
+   - Example: `py Server.py -i 127.0.0.1 -p 65432` is equivalent to `py Server.py -p 65432`.
    - Use `py Server.py -h` for additional information.
      
-3. **Start one or more clients:** Run the `Client.py` script with 4 required arguments.
-   - usage: Client.py [-h\] ip-addr port request login username
-   - First required arg is the the server IP address.
-   - Second required arg is the port number of the server the client is connecting to.
-   - Third required arg is the command login.
-   - Forth required arg is the username that you'd login as.
+3. **Start one or more clients:** Run the `Client.py` script with 4 optional arguments.
+   - usage: Client.py [-h\] -i ip-addr -p port login username
+   - First optional arg is the the server IP address, default value set to 127.0.0.1.
+   - Second optional arg is the port number of the server the client is connecting to, default value set to 65432.
+   - Third optional arg is the command login, default is set to login.
+   - Forth optional arg is the username that you'd login as, default is set to user#, where # changes by the number of users.
    - Example: `py Client.py 127.0.0.1 65432 login username` or `py Client.py 127.0.0.1 65432 login testUser`.
    - Use `py Client.py -h` for additional information.
      
