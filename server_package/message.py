@@ -219,8 +219,7 @@ class Message():
     
     def _handle_board(self, value):
         board = movehandler.findGame(int(value))
-        nextPlayer = board.getCurrentPlayerTurn().getUsername()
-        return {"board": f"{nextPlayer}, {board.getBoard()}"}
+        return {"board": f"{board.getHistory()}"}
 
     def _handle_quit(self, _):
         self.quit = True

@@ -26,8 +26,8 @@ class Piece():
 
     def __str__(self):
         if self.color == colors.RED:
-            return "X"
+            return "x"
         elif self.color == colors.BLACK:
-            return "O"
+            return "o"
         else:
-            return "_"
+            return ""

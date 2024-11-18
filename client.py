@@ -22,7 +22,7 @@ import logging
 import client_package.clientmessage as clientmessage
 
 sel = selectors.DefaultSelector()
-# logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.DEBUG)
 
 def start_connections(server_addr, request):
     """Function called before the client event loop. Establishes connection to server."""

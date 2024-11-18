@@ -58,7 +58,8 @@ class Message:
         self.quit = False
         self.username = request["content"]["value"]
 
-        self.gameBoard = numpy.empty((6,7))
+        self.gameBoard = numpy.zeros((6,7), dtype=object)
+        self.moveHistory = ""
         self.boardID = -1
         self.gameStatus = None
         self.isUserTurn = False
@@ -97,6 +98,7 @@ class Message:
                 sent = self.sock.send(self._send_buffer)
             except BlockingIOError:
                 # Resource temporarily unavailable (errno EWOULDBLOCK)
+                logging.debug(f"Tried sending, but was blocked.")
                 pass
             else:
                 self._send_buffer = self._send_buffer[sent:]
@@ -144,31 +146,26 @@ class Message:
         elif content.get(Action.START.value):
             value = content[Action.START.value].split(',')
             logging.info(f"Comparing {value[0]} to {self.username}.")
-            self.isUserTurn = value[0] == self.username # are they first person, or second?
             if self.isUserTurn:
                 self.color = Color.RED.value
             else:
                 self.color = Color.BLACK.value
             self.gameStatus = Status.BEGIN
             self.boardID = value[1]
-        elif content.get(Action.BOARD.value):
+        elif list(content.keys())[0] == Action.BOARD.value: # if the key is equal to 'board'
             values = content[Action.BOARD.value]
-            split_values = values.split(',')
-            current_turn = split_values[0] # username
-            if current_turn == self.username:
-                logging.info(f"Server claims it is this user's turn. Enabling input.")
-                self.isUserTurn = True
-            value = split_values[1]
-            logging.info(f"Converting recieved string array to numpy array.")
-            cleaned_str = value.replace('[', '').replace(']', '').replace('\n', ' ')
-            board_flat = numpy.fromstring(cleaned_str, sep=' ', dtype=numpy.int16)
-            board = board_flat.reshape(6,7)
-            if self.gameStatus == Status.BEGIN:
-                self.gameStatus = Status.ONGOING
-            if (board != self.gameBoard).any():
+
+            if len(values) > len(self.moveHistory):
+                self.gameBoard = Board.build_board(values) # translate raw string into numpy array
+                self.moveHistory = values # update history to current history
+                self.isUserTurn = True # the other player made a move, it is now the user's turn
                 logging.info(f"Board was updated. Updating local board to match servers.")
-                self.gameBoard = board.copy()
-            print("\n\n\n\n\n\n",numpy.matrix(self.gameBoard), f"current turn: {current_turn}")
+            elif len(values) == 0:
+                self.gameStatus = Status.ONGOING
+
+            if self.gameStatus == Status.BEGIN.value:
+                self.gameStatus = Status.ONGOING
+            print("\n\n\n\n\n\n",numpy.matrix(self.gameBoard), f"current turn: ")
                 
 
     def join_a_username(self, result):
@@ -189,7 +186,7 @@ class Message:
         possible_actions = self.state.get_next_states(previous_request)
         next_action = ""
         try:
-            while not next_action and not self.quit and not self.gameStatus:
+            while not next_action and not self.quit: #  and not self.gameStatus
                 """while we dont have a valid action and we aren't quitting
                 if possible actions are empty, it means we tried to join when theres nothing to join
                 if the next action is valid, set it as the action to be taken
@@ -210,12 +207,14 @@ class Message:
                     self.request["content"]["action"] = next_action
                     if next_action == Action.START.value:
                         self.gameStatus = Status.WAITING
+                        self.isUserTurn = True
                         self.request["content"]["value"] = self.username
                         self.queue_request()
                         self._request_queued = True
                         self._set_selector_events_mask("rw")
                     if previous_request == Action.JOIN.value:
                         self.gameStatus = Status.WAITING
+                        self.isUserTurn = False
                         self.request["content"]["value"] = f"{next_action},{self.username}"
                         self.request["content"]["action"] = "begin"
                         self.queue_request()
@@ -240,6 +239,17 @@ class Message:
             self._request_queued = True
             self._set_selector_events_mask("rw")
 
+    def legal_move(self, move):
+        if not move:
+            return False
+
+        if (len(move) == 3
+            and move[0] == 'a' or move[0] == 'b'
+            and 0 <= move[1] <= 6
+            and 0 <= move[2] <= 7):
+            return True
+        return False
+
     def process_events(self, mask):
         logging.info(f"Process events occurring for user {self.username}")
 
@@ -249,39 +259,44 @@ class Message:
             self.write()
         
         #create another event read, if theres nothing queued and no response waiting
+        logging.debug(f"Current game status is {self.gameStatus}")
+        
         if self.gameStatus == Status.WAITING:
-            time.sleep(2.5)
+            time.sleep(0.1)
             logging.debug("Status waiting, seeing if player has joined lobby...\n\n\n\n\n")
             self.request = fill_text_request("begin", Status.WAITING.value+self.username)
             self.queue_request()
-            self._request_queued = True
+            # self._request_queued = True
             self._set_selector_events_mask("rw")
         elif self.gameStatus == Status.BEGIN:
             self.request = fill_text_request(Action.BOARD.value, self.boardID)
             self.queue_request()
-            self._request_queued = True
+            # self._request_queued = True
             self._set_selector_events_mask("rw")
         elif self.gameStatus == Status.ONGOING:
             if self.isUserTurn:
-                move = input()
+
+                move = ""
+                while not move:
+                    move = input()
+                    if not self.legal_move(move):
+                        move = ""
+
                 logging.info(f"Player made move {move}.")
-                #TODO: verify if this move is legal, then send the message to server
-                # move must be in format "x,y" where x 0-6 and y 0-7
-                # move must not occupy a space already occupied by a color
-                self.request = fill_text_request("move", f"{self.username},{self.color},{move},{self.boardID}")
+                self.request = fill_text_request(Action.MOVE.value, f"{self.username},{self.color},{move},{self.boardID}")
                 self.queue_request()
                 self._request_queued = True
                 self._set_selector_events_mask("rw")
                 self.isUserTurn = False
                 logging.info(f"Client made move. Informing Server. No longer this user's turn.")
             else:
-                time.sleep(2.5)
+                time.sleep(1)
                 logging.info("Waiting for other client to give move...")
                 self.request = fill_text_request("board", self.boardID)
                 self.queue_request()
                 self._request_queued = True
                 self._set_selector_events_mask("rw")
-            # ask for 
+
         elif not self.response and not self._request_queued:
             self.create_new_request()
             
