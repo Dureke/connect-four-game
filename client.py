@@ -22,7 +22,8 @@ import logging
 import client_package.clientmessage as clientmessage
 
 sel = selectors.DefaultSelector()
-logging.basicConfig(level=logging.DEBUG)
+# logging.basicConfig(level=logging.DEBUG)
+count = 1
 
 def start_connections(server_addr, request):
     """Function called before the client event loop. Establishes connection to server."""
@@ -58,14 +59,14 @@ def parse_args():
     examp: Client.py 127.0.0.1  65432 search user"""
     parser = argparse.ArgumentParser(prog='Client.py',
                                      description='This is the client portion of the connect four python game.')
-    parser.add_argument('ip', metavar='ip-addr', type=str,
+    parser.add_argument('-i', '--ip', type=str,
                         help='an IPv4/IPv6 address of the server the client is connecting to')
-    parser.add_argument('port', type=int, 
+    parser.add_argument('-p', '--port', type=int, 
                         help='the port of the server client is connecting to. Values within range [0, 65535]')
-    parser.add_argument('action', metavar='request', type=str, 
-                        help='the action requested from client to server')
+    parser.add_argument('action', metavar='request', type=str, nargs='?',
+                        help='the action requested from client to server. Actions possible: [\'login\']')
     parser.add_argument('value', metavar='value', type=str, nargs='?',
-                        help='the optional clarification for the action selected (Default: "None")')
+                        help='the optional clarification for the action selected (Default: "user#")')
 
     # TODO: Support DNS name and argument -d --DNS.
 
@@ -76,9 +77,14 @@ def parse_args():
     if not 0 <= port <= 65535:
         raise ValueError(f"Invalid port value [{port}]. Port must be within range [0, 65535].")
     
-    action = args['action']
+    if not args['action']:
+        action = 'login'
+    else:
+        action = args['action']
+
     if not args['value']:
-        value = "None"
+        value = f"user{count}"
+        count += 1
     else:
         value = args['value']
 

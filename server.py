@@ -27,7 +27,7 @@ games = []
 connections = {} # player : (connection, board)
 
 
-logging.basicConfig(level=logging.DEBUG)
+# logging.basicConfig(level=logging.DEBUG)
 
 def setup_lsock(server_address):
     """Function called before the server event loop. Establishes server listening socket.
@@ -81,14 +81,18 @@ def parse_args():
     usage: Server.py [-h] ip-addr [port]"""
     parser = argparse.ArgumentParser(prog='Server.py',
                                      description='This is the server portion of the connect four python game.')
-    parser.add_argument('ip', metavar='ip-addr', type=str, 
-                        help='an IPv4/IPv6 address for server')
-    parser.add_argument('port', type=int, nargs='?',
+    parser.add_argument('-i', '--ip', type=str, nargs='?',
+                        help='an IPv4/IPv6 address for server (Default: 0.0.0.0)')
+    parser.add_argument('-p', '--port', type=int, nargs='?',
                         help='the port of the server. Values within range [0, 65535] (Default: 65432)')
 
     args = vars(parser.parse_args())
     
-    host = args['ip']
+    if not args['ip']:
+        host = '0.0.0.0'
+    else:
+        host = args['ip']
+
     if not args['port']:
         port = 65432
     else:
