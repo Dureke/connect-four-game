@@ -72,10 +72,17 @@ def parse_args():
 
     args = vars(parser.parse_args())
     
-    host = args['ip']
-    port = args['port']
-    if not 0 <= port <= 65535:
-        raise ValueError(f"Invalid port value [{port}]. Port must be within range [0, 65535].")
+    if not args['ip']:
+        host = '0.0.0.0'
+    else:
+        host = args['ip']
+
+    if not args['port']:
+        port = 65432
+    else:
+        port = args['port']
+        if not 0 <= port <= 65535:
+            raise ValueError(f"Invalid port value [{port}]. Port must be within range [0, 65535].")
     
     if not args['action']:
         action = 'login'
