@@ -20,13 +20,13 @@ import traceback
 import logging
 import random
 
-import client_package.clientmessage as clientmessage
+from client_package.connection import Connection 
 
 sel = selectors.DefaultSelector()
-# logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.DEBUG)
 
 
-def start_connections(server_addr, request):
+def start_connections(server_addr, username):
     """Function called before the client event loop. Establishes connection to server."""
    
     logging.info(f"starting connection to {server_addr}")
@@ -41,12 +41,8 @@ def start_connections(server_addr, request):
         return
 
     events = selectors.EVENT_READ | selectors.EVENT_WRITE
-    message = clientmessage.Message(sel, sock, server_addr, request)
-    sel.register(sock, events, data=message)
-
-def send_new_message(socket, event, server_addr, request):
-    message = clientmessage.Message(sel, socket, server_addr, request)
-    socket.send()
+    connection = Connection(sel, sock, server_addr, username)
+    sel.register(sock, events, data=connection)
             
 # parses the required argument of --ip-addr, as well as an optional port number
 def parse_args():
@@ -68,8 +64,6 @@ def parse_args():
                         help='the action requested from client to server. Actions possible: [\'login\']')
     parser.add_argument('value', metavar='value', type=str, nargs='?',
                         help='the optional clarification for the action selected (Default: "user#")')
-
-    # TODO: Support DNS name and argument -d --DNS.
 
     args = vars(parser.parse_args())
     
@@ -102,20 +96,19 @@ def parse_args():
 # Start of the main program
 
 host, port, action, value = parse_args()
-request = clientmessage.create_request(action, value)
-start_connections((host, port), request)
+# request = clientmessage.create_request(action, value)
+start_connections((host, port), value)
 
 try:
     while True:
         events = sel.select(timeout=1)
-        if events:
-            for key, mask in events:
-                message = key.data
-                try:
-                    message.process_events(mask)
-                except Exception:
-                    logging.exception(f"main: error: exception for {message.addr}:\n{traceback.format_exc()}")
-                    message.close()
+        for key, mask in events:
+            connection = key.data
+            try:
+                connection.process_events(mask)
+            except Exception:
+                logging.exception(f"main: error: exception for {connection.addr}:\n{traceback.format_exc()}")
+                connection.close()
 
         if not sel.get_map():
             break

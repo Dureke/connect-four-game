@@ -12,16 +12,14 @@ from game.boards import Board
 from game.action import Action
 from game.colors import Color
 
-import client_package.clientstate as clientstate
+import client_package.state as State
 
-def fill_request(reqType, reqEncoding, reqAction, reqValue):
+def fill_text_request(reqAction, reqValue):
     return dict(
-        type=reqType,
-        encoding=reqEncoding,
+        type="text/json",
+        encoding="utf-8",
         content=dict(action=reqAction, value=reqValue),
     )
-def fill_text_request(reqAction, reqValue):
-    return fill_request("text/json", "utf-8", reqAction, reqValue)
 
 def create_request(action, value):
     """Creates a protocol for the client request, to be sent to the clientmessage Message."""
@@ -54,7 +52,7 @@ class Message:
         self._jsonheader_len = None
         self.jsonheader = None
         self.response = None
-        self.state = clientstate.State()
+        self.state = None
         self.quit = False
         self.username = request["content"]["value"]
 

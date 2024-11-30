@@ -27,7 +27,7 @@ games = []
 connections = {} # player : (connection, board)
 
 
-# logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.DEBUG)
 
 def setup_lsock(server_address):
     """Function called before the server event loop. Establishes server listening socket.
@@ -62,11 +62,38 @@ def accept_wrapper(sock):
     connection = Connection(sel, conn, addr)
     events = selectors.EVENT_READ | selectors.EVENT_WRITE
     sel.register(conn, events, data=connection)
-    connections[addr] = connection, connection.get_username
+    connections[connection.get_username()] = connection
+    logging.debug(f"Contents of connections: {connections}")
 
 def process_updates(tasks):
-    for task in tasks:
-        # do something
+    while(tasks):
+        task = tasks.pop()
+        logging.debug(f"ding! {task[:4] == 'move'}")
+        logging.info(f"Recieved server task of {task}")
+        if task[:5] == "begin":
+            # contact both users
+            usernames = task[7:].replace("'", "")
+            usernames = usernames.replace(")", "")
+            usernames = usernames.split(",")
+
+            player_1 = usernames[0]
+            player_2 = usernames[1][1:]
+            connections[player_1].create_message("begin", f"waiting,{player_1}")
+            connections[player_2].create_message("begin", f"waiting,{player_2}")
+            logging.info(f"Sending [begin] messages to users {player_1} and {player_2}")
+        if task[:5] == "login":
+            # register the username to the connection
+            username = task[7:].replace("'", "")
+            connections[username] = connections[None]
+            connections[None]
+        if task[:4] == "move":
+            usernames = task.split('/')
+            player_1 = usernames[1].replace("'", "")
+            player_2 = usernames[2].replace("'", "")
+            value = usernames[3]
+            connections[player_1].create_message("move_server", value)
+            connections[player_2].create_message("move_server", value)
+            logging.info(f"Sending [move] messages to users {player_1} and {player_2}")
         return
 
 
@@ -111,7 +138,7 @@ try:
     while True:
         # Global tasks, assigning tasks given by its branching connections. Updates games, tells which connections need updating
         movehandler.handle_moves()
-        events = sel.select(timeout=None)
+        events = sel.select(timeout=1)
         for key, mask in events:
             if key.data is None:
                 accept_wrapper(key.fileobj)
@@ -131,8 +158,8 @@ try:
                     connection.process_events(mask)
                 except Exception:
                     logging.exception(f"Exception: exception for {connection.addr}:\n{traceback.format_exc()}")
+                    connections[connection.username] = None
                     connection.close()
-                    connections[connection.get_address()] = None
 except KeyboardInterrupt:
     logging.exception(f"Exception: Caught keyboard interrupt, exiting.")
 except ConnectionError as err:
