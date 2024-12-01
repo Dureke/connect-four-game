@@ -18,12 +18,17 @@ class Board(Rules):
 
     count = 1
 
-    def __init__(self, player1, player2=None, id=count):
-        super().__init__()
+    def __init__(self, player1, player2=None, id=count,  color=1):
+        super().__init__(color)
         self.ID = id
         self.player1 = player1
         self.player2 = player2
-        self.board = numpy.zeros((6,7), dtype=object)
+        self.board = numpy.array([[0, 1, 2, 3, 4, 5, 6],
+                                  [0, 1, 2, 3, 4, 5, 6],
+                                  [0, 1, 2, 3, 4, 5, 6],
+                                  [0, 1, 2, 3, 4, 5, 6],
+                                  [0, 1, 2, 3, 4, 5, 6],
+                                  [0, 1, 2, 3, 4, 5, 6]], dtype=object)
         self.count += 1
         self.status = Status.WAITING
         self.currentTurn = self.player1
@@ -63,9 +68,11 @@ class Board(Rules):
     
     def y_index(self, x_value):
         deepest_free_space = 99
-        for index, value in enumerate(self.board[x_value]):
-            if value == 0:
+        for index, value in enumerate(self.board):
+            logging.debug(f"Checking {value}...({type(value[x_value])}) Is {value[x_value]} == 0?")
+            if type(value[x_value]) == int:
                 deepest_free_space = index
+        logging.debug(f"Returning {deepest_free_space}")
         return deepest_free_space
             
     
@@ -73,7 +80,8 @@ class Board(Rules):
         x, y = piece.getLocation()
         if not self.moveAllowed(board, x):
             raise RuntimeError("Illegal Move.")
-        self.board[x][y] = piece
+        logging.debug(f"DEBUG: {x}, {type(x)} : {y}, {type(y)}")
+        self.board[y][x] = piece
         self.swap_turns()
 
         if self.currentTurn == self.player1:
@@ -88,7 +96,9 @@ class Board(Rules):
         all_legal_columns = [0, 1, 2, 3, 4, 5, 6]
         int_move = int(move)
         if int_move in all_legal_columns:
-            piece = Piece(board.getNextPlayer().value, int_move, board.y_index(int_move), board)
+            if board.y_index(int_move) == 99:
+                return False
+            piece = Piece(board.getNextPlayer(), board.y_index(int_move), int_move, board)
             logging.debug(f"Checking locations: {self.locationFree(self.board, piece)}")
             logging.debug(f"Checking turn order: {self.turnOrder(piece)}")
             return self.locationFree(self.board, piece) and self.turnOrder(piece)
@@ -96,5 +106,23 @@ class Board(Rules):
         return False
     
     def __str__(self):
-        return numpy.array2string(self.board)
+        board_string = "|---|---|---|---|---|---|---|\n"
+        for row in self.board:
+            row_string = " | "
+            for spot in row:
+                if type(spot) == int:
+                    row_string += "\u25CC | "
+                else:
+                    color = spot.getColor()
+                    logging.info(f"DEBUG: {color}")
+                    if color == 1:
+                        piece_char = "\u25CE"
+                    else:
+                        piece_char = "\u25C9"
+                    row_string += piece_char + " | "
+            row_string += "\n |---|---|---|---|---|---|---|\n"
+            board_string += row_string
+        board_string += "   0   1   2   3   4   5   6   "
+        return board_string
+                    
 

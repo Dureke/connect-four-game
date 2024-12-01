@@ -115,7 +115,11 @@ class Connection:
         # update board!
         move = self.message.get_move()
         if len(move) == 3: # initalizing!
-            self.board = Board(move[0], move[1], int(move[2]))
+            if move[0] == self.username:
+                color = 1
+            else:
+                color = 2
+            self.board = Board(move[0], move[1], int(move[2]), color)
         else: # update existing board!
             piece = Piece(int(move[1]), int(move[2]), int(move[3]), self.board)
             self.board.setPiece(self.board, piece)
@@ -123,7 +127,7 @@ class Connection:
         # move contains username,color,x,y,boardID
         if self.state == State.PLAYER_TURN:
             legal_move = int(self.make_move())
-            translate_move = f"{self.username},{self.board.getNextPlayer().value},{legal_move},{self.board.y_index(legal_move)},{self.board.getID()}"
+            translate_move = f"{self.username},{self.board.getNextPlayer()},{legal_move},{self.board.y_index(legal_move)},{self.board.getID()}"
             self.message = Message(self._recv_buffer, self.sock, self.addr, self.username, action=State.PLAYER_TURN.value, value=translate_move)
         else:
             print("\n\n\n\n\n\n", self.board)
