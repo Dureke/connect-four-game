@@ -1,4 +1,4 @@
-import game.colors as colors
+from game.colors import Color
 
 class Piece():
     count = 0
@@ -23,11 +23,14 @@ class Piece():
     
     def getBoard(self):
         return self.board
+    
+    def getColor(self):
+        return self.color
 
     def __str__(self):
-        if self.color == colors.RED:
+        if self.color == Color.RED:
             return "x"
-        elif self.color == colors.BLACK:
+        elif self.color == Color.BLACK:
             return "o"
         else:
             return ""

@@ -21,6 +21,9 @@ class Connection:
     def get_address(self):
         return self.addr
     
+    def create_message(self, action, value):
+        self.message = Message(self._recv_buffer, self.sock, self.addr, (action, value))
+    
     def _set_selector_events_mask(self, mode):
         """Set selector to listen for events: mode is 'r', 'w', or 'rw'."""
         if mode == "r":
@@ -53,8 +56,11 @@ class Connection:
             pass  
         
         # Create a message with the buffer, and re-obtain the updated buffer
-        self.message = Message(self._recv_buffer, self.sock, self.addr)
-        self._recv_buffer = self.message.get_remaining_buffer()
+        if self.message:
+            return
+        else:
+            self.message = Message(self._recv_buffer, self.sock, self.addr)
+            self._recv_buffer = self.message.get_remaining_buffer()
 
         # Get the task and pass it later as a global server action
         server_task = self.message.get_server_task()
@@ -64,8 +70,13 @@ class Connection:
             self._set_selector_events_mask("w")
         elif "login" in server_task:
             self.username = server_task[5:]
-        elif "board" in server_task:
-            self.task.append(server_task)
+            self.task.append(f"login:{self.username}")
+        # elif "board" in server_task:
+        #     self.task.append(server_task)
+        # elif "begin" in server_task:
+        #     self.task.append(server_task)
+        # elif "move" in server_task:
+        #     self.task.append(server_task)
         else:
             self.task.append(server_task)
         

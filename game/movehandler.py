@@ -1,7 +1,7 @@
 import game.piece as piece
 import game.players as players
 import game.boards as boards
-import game.colors as colors
+from game.colors import Color
 import logging
 
 playerList = []
@@ -23,6 +23,7 @@ def getAwaitingGames():
 def gamesToUsername(games):
     usernames = []
     for game in games:
+        logging.info(f"Current game Player 1: {game.getPlayer1()}, Player 2: {game.getPlayer2()}")
         usernames.append(game.getPlayer1().getUsername())
     logging.info(f"Translating game into {usernames}")
     return usernames
@@ -32,7 +33,9 @@ def handle_moves():
         piece = queuedMoves.pop()
         board = piece.getBoard()
 
-        gameList[board].setPiece(piece)
+        for game in gameList:
+            if game == board:
+                game.setPiece(board, piece)
 
 def getPlayer(username):
     for player in playerList:
@@ -80,6 +83,7 @@ def findGame(boardID):
 def has_player2_joined(username):
     for game in gameList:
         if game.getPlayer1() and game.getPlayer2():
+            logging.debug(f"Checking for player with name: {username}")
             logging.debug(f"player1: {game.getPlayer1().getUsername()}, player2: {game.getPlayer2().getUsername()}")
         # Only games that have both player1 and player2
             if game.getPlayer1().getUsername() == username:
@@ -118,6 +122,7 @@ def join(usernames):
 def queueMove(value):
     # username,color,x,y,boardID
     parsed_value = value.split(',')
+    logging.debug(f"Queued move: {parsed_value}")
     username = parsed_value[0]
     color = translateColor(parsed_value[1])
     x, y = translateXY(parsed_value[2], parsed_value[3])
@@ -126,13 +131,14 @@ def queueMove(value):
     board.swap_turns()
 
     queuedMoves.append(piece.Piece(color, x, y, board))
+    logging.debug("Move sucessfully queued.")
     return username
 
 def translateColor(string):
     if string == "1":
-        return colors.RED.value
+        return Color.RED.value
     else:
-        return colors.BLACK.value
+        return Color.BLACK.value
     
 def translateXY(stringX, stringY):
     return int(stringX), int(stringY)
