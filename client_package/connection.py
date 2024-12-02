@@ -6,6 +6,7 @@ from client_package.state import State
 from game.action import Action
 from game.boards import Board
 from game.piece import Piece
+from game.colors import Color
 import time
 
 class Connection:
@@ -18,6 +19,7 @@ class Connection:
         self._send_buffer = b""
         self.state = 1 # state is auto set to 1, because we are sending login message
         self.username = username
+        self.aborting = False
         self.message = Message(self._recv_buffer, self.sock, self.addr, self.username, action=State.ESTABLISH.value)
 
         self._send_buffer += self.message.get_response()
@@ -41,11 +43,13 @@ class Connection:
 
         if mask & selectors.EVENT_READ:
             self.read()
+        if self.state == State.QUIT:
+            self.close()
+            return
         if mask & selectors.EVENT_WRITE:
             self.write()
         
-        if self.state == State.QUIT:
-            self.close()         
+               
 
     def read(self):
         """Retrieves data from client into self._recv_buffer. Raises exception if no data to retrieve."""
@@ -103,6 +107,18 @@ class Connection:
         if self.state:
             if self.state == State.PLAYER_TURN or self.state == State.PLAYER_WAITING:
                 self.send_move_message()
+            if self.state == State.END_GAME_WIN:
+                # display end game message
+                # reset message back to input
+                print("CONGRADULATIONS! You've won your match!")
+                time.sleep(3)
+                self.message = Message(self._recv_buffer, self.sock, self.addr, self.username, action="login", value=self.username)
+                
+            if self.state == State.END_GAME_LOSS:
+                print("MATCH LOSS! Try again?")
+                time.sleep(3)
+                self.message = Message(self._recv_buffer, self.sock, self.addr, self.username, action="login", value=self.username)
+                
                 
             self._set_selector_events_mask("w")
             logging.debug(f"client tasks are: {self.state}")
@@ -125,20 +141,45 @@ class Connection:
             self.board.setPiece(self.board, piece)
 
         # move contains username,color,x,y,boardID
+        color = self.board.getNextPlayer()
+        logging.info(f"Ding, got {color} of type {type(color)}")
         if self.state == State.PLAYER_TURN:
-            legal_move = int(self.make_move())
+            if color == 1:
+                piece_char = "\u25CE"
+            else:
+                piece_char = "\u25C9"
+            legal_move = int(self.make_move(piece_char))
             translate_move = f"{self.username},{self.board.getNextPlayer()},{legal_move},{self.board.y_index(legal_move)},{self.board.getID()}"
             self.message = Message(self._recv_buffer, self.sock, self.addr, self.username, action=State.PLAYER_TURN.value, value=translate_move)
         else:
+            if color == 1:
+                piece_char = "\u25CE"
+            else:
+                piece_char = "\u25C9"
             print("\n\n\n\n\n\n", self.board)
-            print("Opponents turn.")      
+            print("Opponents turn.")
+            print(f"{piece_char}{piece_char}   - Your color -   {piece_char}{piece_char}")
     
-    def make_move(self):
+    def make_move(self, piece_char):
         print("\n\n\n\n\n\n", self.board)
         print("Your turn! Select a column to put your piece!")
+        print(f"{piece_char}{piece_char}   - Your color -   {piece_char}{piece_char}")
         move = input()
         if self.board.moveAllowed(self.board, move):
             return move
         else:
             print("Move was not valid.")
-            return self.make_move()
+            return self.make_move(piece_char)
+        
+    def abort(self):
+        logging.debug("User quitting prematurely, aborting.")
+        self.message = Message(self._recv_buffer, self.sock, self.addr, self.username, action=State.QUIT.value, value="abort")
+        self._send_buffer = self.message.get_response()
+        while (self._send_buffer):
+            try:
+                sent = self.sock.send(self._send_buffer)
+                self._send_buffer = self._send_buffer[sent:]
+            except BlockingIOError: # Resource temporarily unavailable (errno EWOULDBLOCK)
+                pass
+        self.close()
+        

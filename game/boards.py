@@ -94,6 +94,8 @@ class Board(Rules):
 
     def moveAllowed(self, board, move):
         all_legal_columns = [0, 1, 2, 3, 4, 5, 6]
+        if move == "":
+            return False
         int_move = int(move)
         if int_move in all_legal_columns:
             if board.y_index(int_move) == 99:
@@ -125,4 +127,54 @@ class Board(Rules):
         board_string += "   0   1   2   3   4   5   6   "
         return board_string
                     
+    def is_win(self):
+        #check horizontal for wins
+        #check vertical for wins
+        # check left diagnal for wins
+        # check right diagnal for wins
+        # return color of winner, if any, otherwise return 0
 
+        horizontal = self.check_horizontal()
+        vertical = self.check_vertical()
+        left_diagnal = self.check_left_diagnal()
+        right_diagnal = self.check_right_diagnal()
+
+        if horizontal:
+            winning_color = horizontal
+        elif vertical:
+            winning_color = vertical
+        elif left_diagnal:
+            winning_color = left_diagnal
+        elif right_diagnal:
+            winning_color = right_diagnal
+        else:
+            winning_color = 0
+        
+        return winning_color
+
+    def check_horizontal(self):
+        color = 0
+        count = 0
+        for row in self.board:
+            for spot in row:
+                if type(spot) == Piece:
+                    if count == 0:
+                        color = spot.getColor()
+                        count += 1
+                    if count == 4:
+                        return color
+                    if color == spot.getColor():
+                        count += 1
+                    else:
+                        count = 1
+                        color = spot.getColor()
+        return 0
+    
+    def check_vertical(self):
+        return 0
+    
+    def check_left_diagnal(self):
+        return 0
+    
+    def check_right_diagnal(self):
+        return 0

@@ -10,7 +10,8 @@ class State(Enum):
     BEGIN = 5           # Server joined both clients into 1 game, begin next state
     PLAYER_TURN = 6     # Current player's move
     PLAYER_WAITING = 7  # Current player waiting on opponents move
-    END_GAME = 8        # Game concluded for both player's display results, return to 2
+    END_GAME_WIN = 8    # Game concluded for both player's display results, return to 2
+    END_GAME_LOSS = 10
     QUIT = 9            # Player quit, shut game down and remove player
     ESTABLISH = 99      # Initial state when client/server first interact
 

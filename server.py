@@ -94,6 +94,14 @@ def process_updates(tasks):
             connections[player_1].create_message("move_server", value)
             connections[player_2].create_message("move_server", value)
             logging.info(f"Sending [move] messages to users {player_1} and {player_2}")
+        if task[:3] == "end":
+            task_split = task.split('/')
+            player_1 = task_split[1].replace("'", "")
+            player_2 = task_split[2].replace("'", "")
+            winner = task_split[1]
+            connections[player_1].create_message("end", winner)
+            connections[player_2].create_message("end", winner)
+            logging.info(f"Sending [end] messages to users {player_1} and {player_2}")
         return
 
 
