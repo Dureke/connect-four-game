@@ -45,9 +45,11 @@ class Message:
             Action.JOIN.value: self._join_response,
             Action.BEGIN.value: self._begin_response,
             Action.QUIT.value: self._quit_response,
+            State.QUIT.value: self._keyboard_interrupt_response,
             Action.ERROR.value: self._error_response,
             Action.MOVE.value: self._move_response,
-            State.PLAYER_TURN.value: self._make_move_response
+            State.PLAYER_TURN.value: self._make_move_response,
+            "end": self._end_response
         } 
         return action_methods[action](value)
 
@@ -77,12 +79,18 @@ class Message:
     def _login_response(self, value): # sucessful login, get input
         self.state = State.CLIENT_INPUT
 
-        return self._helper_response(self.get_input(["start", "join", "quit"]), self.username)
+        input = self.get_input(["start", "join", "quit"])
+
+        if (input == "quit"):
+            return self._helper_response("quit", "quit")
+
+        return self._helper_response(input, self.username)
     
     def get_input(self, possible_actions):
         player_action = None
         while not player_action:
-            print(f"\n\nPlease select an action to take!\n"
+            print("\n\n\n\n\n\n\n\n")
+            print(f"Please select an action to take!\n\n\n"
                   + f"Possible actions: {possible_actions}")
             player_action = input()
             if player_action in possible_actions:
@@ -135,6 +143,20 @@ class Message:
             logging.info(f"Retrieving move {move.split(',')}")
             return move.split(",")
         return None
+    
+    def _end_response(self, value):
+        if value == self.username:
+            self.state = State.END_GAME_WIN
+        else:
+            print("...ding?")
+            self.state = State.END_GAME_LOSS
+        print("\n\n\n\n\n\n\n\n")
+        print("--------- GAME END ---------")
+        print("\n\n\n\n\n\n\n\n")
+        return None
+    
+    def _keyboard_interrupt_response(self, value):
+        return self._helper_response("quit", "abort")
 
 
 

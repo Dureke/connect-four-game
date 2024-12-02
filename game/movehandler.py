@@ -149,3 +149,12 @@ def translateBoardID(string):
         raise Exception(f"No existing game of board ID {int(string)} found.")
     else:
         return board
+    
+def is_win(board_id):
+    logging.info(f"Checking game {board_id}:")
+    board = translateBoardID(board_id)
+    logging.info(f"Checking game {board_id}: Returning winning color: {board.is_win()}") 
+    if board.is_win():
+        removeGame(board)
+
+    return board.is_win()

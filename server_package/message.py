@@ -101,7 +101,8 @@ class Message():
             Action.ERROR.value: self._handle_error,
             5: self._handle_player_turn,
             6: self._handle_player_waiting,
-            "move_server": self._handle_server_move
+            "move_server": self._handle_server_move,
+            "end": self._handle_end
         }
         
         if action not in action_methods:
@@ -225,6 +226,10 @@ class Message():
         player1 = game.getPlayer1().getUsername()
         player2 = game.getPlayer2().getUsername()
         movehandler.queueMove(value)
+        win_check = movehandler.is_win(value.split(",")[4])
+        if win_check:
+            self.server_task = f"end/{player1}/{player2}/{win_check}"
+            return None
         self.server_task = f"move/{player1}/{player2}/{value}"
         return None
         
@@ -232,9 +237,11 @@ class Message():
         board = movehandler.findGame(int(value))
         return {"board": f"{board.getHistory()}"}
 
-    def _handle_quit(self, _):
+    def _handle_quit(self, value):
         self.quit = True
         self.server_task = Action.QUIT.value
+        if value == "abort":
+            return None
         return self._handle_helper("quit", "Connection closing. Goodbye!")
     
     def _handle_server_move(self, value):
@@ -245,3 +252,6 @@ class Message():
     
     def _handle_player_waiting(self, value):
         return {"break me!", "you're waiting? oops again"}
+    
+    def _handle_end(self, value):
+        return self._handle_helper("end", value)

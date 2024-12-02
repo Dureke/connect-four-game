@@ -106,6 +106,10 @@ try:
             connection = key.data
             try:
                 connection.process_events(mask)
+            except KeyboardInterrupt:
+                logging.exception(f"User quitting prematurely, safely exiting.")
+                connection.abort()
+                pass
             except Exception:
                 logging.exception(f"main: error: exception for {connection.addr}:\n{traceback.format_exc()}")
                 connection.close()

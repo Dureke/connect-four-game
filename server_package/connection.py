@@ -42,8 +42,8 @@ class Connection:
         if mask & selectors.EVENT_WRITE:
             self.write()
         
-        if not self._recv_buffer and not self._send_buffer and self.quit:
-            self.close()         
+        if self.quit:
+            self.close()    
 
     def read(self):
         """Retrieves data from client into self._recv_buffer. Raises exception if no data to retrieve."""
