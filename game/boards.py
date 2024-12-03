@@ -44,7 +44,7 @@ class Board(Rules):
         return self.currentTurn
     
     def swap_turns(self):
-        print(f"comparing {self.currentTurn} to {self.player1}")
+        logging.debug(f"comparing {self.currentTurn} to {self.player1}")
         if self.currentTurn == self.player1:
             self.currentTurn = self.player2
         else:

@@ -145,8 +145,7 @@ class Message:
         if value == self.username:
             self.state = State.END_GAME_WIN
         else:
-            print("...ding?")
-            self.state = State.END_GAME_LOSS
+            self.state = State.END_GAME_LOSS1
         print("\n\n\n\n\n\n\n\n")
         print("--------- GAME END ---------")
         print("\n\n\n\n\n\n\n\n")
