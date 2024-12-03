@@ -71,12 +71,6 @@ class Connection:
         elif "login" in server_task:
             self.username = server_task[5:]
             self.task.append(f"login:{self.username}")
-        # elif "board" in server_task:
-        #     self.task.append(server_task)
-        # elif "begin" in server_task:
-        #     self.task.append(server_task)
-        # elif "move" in server_task:
-        #     self.task.append(server_task)
         else:
             self.task.append(server_task)
         
@@ -88,7 +82,6 @@ class Connection:
     def write(self):
         """Sends data within self._send_buffer data to client."""
         if self.message != None:
-            logging.debug(f"added {self.message.get_response()}")
             self._send_buffer += self.message.get_response()
             self.message = None # We're done with this message, discard it
 

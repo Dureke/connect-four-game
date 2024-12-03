@@ -69,10 +69,8 @@ class Board(Rules):
     def y_index(self, x_value):
         deepest_free_space = 99
         for index, value in enumerate(self.board):
-            logging.debug(f"Checking {value}...({type(value[x_value])}) Is {value[x_value]} == 0?")
             if type(value[x_value]) == int:
                 deepest_free_space = index
-        logging.debug(f"Returning {deepest_free_space}")
         return deepest_free_space
             
     
@@ -80,7 +78,6 @@ class Board(Rules):
         x, y = piece.getLocation()
         if not self.moveAllowed(board, x):
             raise RuntimeError("Illegal Move.")
-        logging.debug(f"DEBUG: {x}, {type(x)} : {y}, {type(y)}")
         self.board[y][x] = piece
         self.swap_turns()
 
@@ -101,10 +98,7 @@ class Board(Rules):
             if board.y_index(int_move) == 99:
                 return False
             piece = Piece(board.getNextPlayer(), board.y_index(int_move), int_move, board)
-            logging.debug(f"Checking locations: {self.locationFree(self.board, piece)}")
-            logging.debug(f"Checking turn order: {self.turnOrder(piece)}")
             return self.locationFree(self.board, piece) and self.turnOrder(piece)
-        logging.debug(f"Move {int_move} not within available columns {all_legal_columns}.")
         return False
     
     def __str__(self):
@@ -116,7 +110,6 @@ class Board(Rules):
                     row_string += "\u25CC | "
                 else:
                     color = spot.getColor()
-                    logging.info(f"DEBUG: {color}")
                     if color == 1:
                         piece_char = "\u25CE"
                     else:
@@ -138,7 +131,6 @@ class Board(Rules):
         vertical = self.check_vertical()
         left_diagnal = self.check_left_diagnal()
         right_diagnal = self.check_right_diagnal()
-
         if horizontal:
             winning_color = horizontal
         elif vertical:
@@ -153,28 +145,94 @@ class Board(Rules):
         return winning_color
 
     def check_horizontal(self):
-        color = 0
-        count = 0
-        for row in self.board:
-            for spot in row:
-                if type(spot) == Piece:
-                    if count == 0:
-                        color = spot.getColor()
-                        count += 1
-                    if count == 4:
-                        return color
-                    if color == spot.getColor():
-                        count += 1
-                    else:
-                        count = 1
-                        color = spot.getColor()
+        for row in numpy.array([0, 1, 2, 3, 4, 5]):
+            count = 0
+            color = 0
+            for column in numpy.array([0, 1, 2, 3, 4, 5, 6]):
+                is_win, color, count = self.check_helper(self.board[row][column], color, count)
+                if is_win:
+                    return color
         return 0
     
     def check_vertical(self):
+        for column in numpy.array([0, 1, 2, 3, 4, 5, 6]):
+            count = 0
+            color = 0
+            for row in numpy.array([0, 1, 2, 3, 4, 5]):
+                is_win, color, count = self.check_helper(self.board[row][column], color, count)
+                if is_win:
+                    return color
         return 0
     
     def check_left_diagnal(self):
+        # diagnals coming from top left to bottom right    
+        for row_diagnal in numpy.array([0, 1, 2]):
+            column = 0
+            row = row_diagnal
+            color = 0
+            count = 0
+            while (column < 7 and row < 6):
+                is_win, color, count = self.check_helper(self.board[row][column], color, count)
+                if is_win:
+                    return color
+                column += 1
+                row += 1
+        
+        for column_diagnal in numpy.array([1, 2, 3]):
+            column = column_diagnal
+            row = 0
+            color = 0
+            count = 0
+            while (column < 7 and row < 6):
+                is_win, color, count = self.check_helper(self.board[row][column], color, count)
+                if is_win:
+                    return color
+                column += 1
+                row += 1
+
         return 0
     
     def check_right_diagnal(self):
+        # diagnals coming from top right to bottom left
+        for row_diagnal in numpy.array([3, 4, 5]):
+            column = 0
+            row = row_diagnal
+            color = 0
+            count = 0
+            while (column < 7 and row > -1):
+                is_win, color, count = self.check_helper(self.board[row][column], color, count)
+                if is_win:
+                    return color
+                column += 1
+                row -= 1
+        
+        for column_diagnal in numpy.array([1, 2, 3]):
+            column = column_diagnal
+            row = 0
+            color = 0
+            count = 0
+            while (column < 7 and row > -1):
+                is_win, color, count = self.check_helper(self.board[row][column], color, count)
+                if is_win:
+                    return color
+                column += 1
+                row -= 1
+
         return 0
+    
+    def check_helper(self, spot, color, count):
+        if type(spot) == Piece:
+            if count == 0:
+                color = spot.getColor()
+                count += 1
+            elif color == spot.getColor():
+                count += 1
+                if count >= 4:
+                    return True, color, count
+            else:
+                count = 1
+                color = spot.getColor()
+        else:
+            color = 0
+            count = 0
+        return False, color, count

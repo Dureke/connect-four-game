@@ -24,7 +24,7 @@ class Connection:
 
         self._send_buffer += self.message.get_response()
         self.message = None
-        self.board = numpy.empty((6,7))
+        self.board = None
     
     def _set_selector_events_mask(self, mode):
         """Set selector to listen for events: mode is 'r', 'w', or 'rw'."""
@@ -39,7 +39,6 @@ class Connection:
         self.selector.modify(self.sock, events, data=self)
     
     def process_events(self, mask):
-        logging.debug(f"Current masks: Read {mask & selectors.EVENT_READ}, Write {mask & selectors.EVENT_WRITE}")
 
         if mask & selectors.EVENT_READ:
             self.read()
@@ -59,7 +58,6 @@ class Connection:
             if not data:
                 raise RuntimeError("Peer closed.")
         except BlockingIOError: # Resource temporarily unavailable (errno EWOULDBLOCK)
-            logging.debug("Blocked.")
             pass  
         
         self.parse_buffer()
@@ -106,23 +104,32 @@ class Connection:
         self.state = self.message.get_state()
         if self.state:
             if self.state == State.PLAYER_TURN or self.state == State.PLAYER_WAITING:
+                if self.board == None:
+                    print("\n\n\n\n\n\n\n\n")
+                    print("Rules:")
+                    print("----------------------")
+                    print("1. Only one person can make a move at a time.")
+                    print("2. Pieces can only be placed in a column, if there is room.")
+                    print("3. First to 4 pieces connecting horizontally, diagnally, or vertically wins!")
+                    print("4. Game ties if no more moves can be made.")
+                    print("5. Have fun!\n\n")
+                    time.sleep(5)
                 self.send_move_message()
             if self.state == State.END_GAME_WIN:
                 # display end game message
                 # reset message back to input
                 print("CONGRADULATIONS! You've won your match!")
-                time.sleep(3)
+                time.sleep(5)
                 self.message = Message(self._recv_buffer, self.sock, self.addr, self.username, action="login", value=self.username)
                 
             if self.state == State.END_GAME_LOSS:
                 print("MATCH LOSS! Try again?")
-                time.sleep(3)
+                time.sleep(5)
                 self.message = Message(self._recv_buffer, self.sock, self.addr, self.username, action="login", value=self.username)
                 
                 
             self._set_selector_events_mask("w")
             logging.debug(f"client tasks are: {self.state}")
-            logging.debug(f"added {self.message.get_response()} to send buffer.")
             self._send_buffer += self.message.get_response()
         else:
             self._set_selector_events_mask("rw")
@@ -142,7 +149,6 @@ class Connection:
 
         # move contains username,color,x,y,boardID
         color = self.board.getNextPlayer()
-        logging.info(f"Ding, got {color} of type {type(color)}")
         if self.state == State.PLAYER_TURN:
             if color == 1:
                 piece_char = "\u25CE"
@@ -173,7 +179,7 @@ class Connection:
         
     def abort(self):
         logging.debug("User quitting prematurely, aborting.")
-        self.message = Message(self._recv_buffer, self.sock, self.addr, self.username, action=State.QUIT.value, value="abort")
+        self.message = Message(self._recv_buffer, self.sock, self.addr, self.username, action=State.QUIT.value, value=f"abort")
         self._send_buffer = self.message.get_response()
         while (self._send_buffer):
             try:

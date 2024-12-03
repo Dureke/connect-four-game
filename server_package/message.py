@@ -90,17 +90,13 @@ class Message():
         value = self.request["content"]["value"]
 
         action_methods = {
-            Action.SEARCH.value: self._handle_search,
             Action.LOGIN.value: self._handle_login,
             Action.START.value: self._handle_start,
             Action.JOIN.value: self._handle_join,
             Action.BEGIN.value: self._handle_begin,
             Action.MOVE.value: self._handle_move,
             Action.QUIT.value: self._handle_quit,
-            Action.BOARD.value: self._handle_board,
             Action.ERROR.value: self._handle_error,
-            5: self._handle_player_turn,
-            6: self._handle_player_waiting,
             "move_server": self._handle_server_move,
             "end": self._handle_end
         }
@@ -148,10 +144,6 @@ class Message():
             encoding = self.jsonheader["content-encoding"]
             self.request = self._json_decode(data, encoding)
             logging.info(f"received request {repr(self.request)} from {self.addr}")
-        else:
-            # Binary or unknown content-type
-            self.request = data
-            logging.info(f'received {self.jsonheader["content-type"]} request from {self.addr}')
 
     def create_response(self):
         logging.debug("Assembling a response.")
@@ -164,19 +156,12 @@ class Message():
         message = self._create_message(**req)
         if response:
             self.response += message
-    
-    # def server_message(self):
-    #     logging.info(f"Server is sending out messages to user.")
 
     def _handle_helper(self, action, value):
         return dict(content=dict(action=action, value=value))
     
     def _handle_error(self, input):
         return self._handle_helper("error",f"Invalid input.")
-    
-    def _handle_search(self, value):
-        result = request_search.get(value, f'No match for "{value}".')
-        return {"result": result}
     
     def _handle_establish(self, value):
         return self._handle_helper(99, None)
@@ -232,26 +217,17 @@ class Message():
             return None
         self.server_task = f"move/{player1}/{player2}/{value}"
         return None
-        
-    def _handle_board(self, value):
-        board = movehandler.findGame(int(value))
-        return {"board": f"{board.getHistory()}"}
 
     def _handle_quit(self, value):
         self.quit = True
         self.server_task = Action.QUIT.value
-        if value == "abort":
+        if value[:5] == "abort":
+            movehandler.abortGame(value.split("/")[1])
             return None
         return self._handle_helper("quit", "Connection closing. Goodbye!")
     
     def _handle_server_move(self, value):
         return self._handle_helper("move", value)
-
-    def _handle_player_turn(self, value):
-        return {"break me!", "Oops"}
-    
-    def _handle_player_waiting(self, value):
-        return {"break me!", "you're waiting? oops again"}
     
     def _handle_end(self, value):
         return self._handle_helper("end", value)

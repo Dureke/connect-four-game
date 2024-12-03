@@ -68,8 +68,6 @@ def accept_wrapper(sock):
 def process_updates(tasks):
     while(tasks):
         task = tasks.pop()
-        logging.debug(f"ding! {task[:4] == 'move'}")
-        logging.info(f"Recieved server task of {task}")
         if task[:5] == "begin":
             # contact both users
             usernames = task[7:].replace("'", "")
@@ -98,7 +96,7 @@ def process_updates(tasks):
             task_split = task.split('/')
             player_1 = task_split[1].replace("'", "")
             player_2 = task_split[2].replace("'", "")
-            winner = task_split[1]
+            winner = task_split[3]
             connections[player_1].create_message("end", winner)
             connections[player_2].create_message("end", winner)
             logging.info(f"Sending [end] messages to users {player_1} and {player_2}")

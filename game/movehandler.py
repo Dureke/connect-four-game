@@ -17,15 +17,14 @@ def getAwaitingGames():
         if not game.getPlayer2():
             awaitingGames.append(game)
 
-    logging.info(f"Retrieved {awaitingGames.__len__()} free games.")
+    logging.debug(f"Retrieved {awaitingGames.__len__()} free games.")
     return awaitingGames
 
 def gamesToUsername(games):
     usernames = []
     for game in games:
-        logging.info(f"Current game Player 1: {game.getPlayer1()}, Player 2: {game.getPlayer2()}")
         usernames.append(game.getPlayer1().getUsername())
-    logging.info(f"Translating game into {usernames}")
+    logging.debug(f"Translating game into {usernames}")
     return usernames
 
 def handle_moves():
@@ -65,6 +64,13 @@ def startGame(username):
     player = getPlayer(username)
     addGame(player, None)
 
+def abortGame(username):
+    player = getPlayer(username)
+    removePlayer(player)
+    game = findEmptyGame(player)
+    if game:
+        removeGame(game)
+
 def findEmptyGame(player):
     for game in gameList:
         player1 = game.getPlayer1()
@@ -74,7 +80,6 @@ def findEmptyGame(player):
     return None
 
 def findGame(boardID):
-    logging.info(f"Searching {gameList}")
     for game in gameList:
         if game.getID() == boardID:
             return game
@@ -83,8 +88,6 @@ def findGame(boardID):
 def has_player2_joined(username):
     for game in gameList:
         if game.getPlayer1() and game.getPlayer2():
-            logging.debug(f"Checking for player with name: {username}")
-            logging.debug(f"player1: {game.getPlayer1().getUsername()}, player2: {game.getPlayer2().getUsername()}")
         # Only games that have both player1 and player2
             if game.getPlayer1().getUsername() == username:
                 # if this game matches the username searching for their game, return that
@@ -122,7 +125,6 @@ def join(usernames):
 def queueMove(value):
     # username,color,x,y,boardID
     parsed_value = value.split(',')
-    logging.debug(f"Queued move: {parsed_value}")
     username = parsed_value[0]
     color = translateColor(parsed_value[1])
     x, y = translateXY(parsed_value[2], parsed_value[3])
@@ -131,7 +133,7 @@ def queueMove(value):
     board.swap_turns()
 
     queuedMoves.append(piece.Piece(color, x, y, board))
-    logging.debug("Move sucessfully queued.")
+    handle_moves()
     return username
 
 def translateColor(string):
@@ -151,7 +153,6 @@ def translateBoardID(string):
         return board
     
 def is_win(board_id):
-    logging.info(f"Checking game {board_id}:")
     board = translateBoardID(board_id)
     logging.info(f"Checking game {board_id}: Returning winning color: {board.is_win()}") 
     if board.is_win():

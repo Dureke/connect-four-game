@@ -37,7 +37,6 @@ class Message:
     
     def create_response(self, action, value):
         """For a given action, value pair, send client's response to that to progress state"""
-        logging.info(f"creating response for action {action} and value {value}.")
         action_methods = {
             State.ESTABLISH.value: self._establish_response,
             Action.LOGIN.value: self._login_response,
@@ -105,7 +104,6 @@ class Message:
     
     def _join_response(self, value):
         # value contains all possible users to join, if empty, no one to join
-        logging.debug(f"Got join response of {value}")
         if value: # there are users to join
             return self._helper_response("begin", f"{self.get_input(value)},{self.username}")
         else: 
@@ -117,7 +115,6 @@ class Message:
         
     def _quit_response(self, value):
         self.state = State.QUIT
-        logging.info(f"Server responded with message: {value}")
         return None # server already closed connection, don't send a message back
 
     def _error_response(self, value):
@@ -140,7 +137,7 @@ class Message:
     def get_move(self):
         if self.server_response["content"]["action"] == "move":
             move = self.server_response["content"]["value"]
-            logging.info(f"Retrieving move {move.split(',')}")
+            logging.debug(f"Retrieving move {move.split(',')}")
             return move.split(",")
         return None
     
@@ -156,7 +153,7 @@ class Message:
         return None
     
     def _keyboard_interrupt_response(self, value):
-        return self._helper_response("quit", "abort")
+        return self._helper_response("quit", f"abort/{self.username}")
 
 
 
