@@ -23,7 +23,7 @@ import random
 from client_package.connection import Connection 
 
 sel = selectors.DefaultSelector()
-logging.basicConfig(level=logging.DEBUG)
+# logging.basicConfig(level=logging.DEBUG)
 
 
 def start_connections(server_addr, username):

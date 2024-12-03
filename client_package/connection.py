@@ -126,6 +126,9 @@ class Connection:
                 print("MATCH LOSS! Try again?")
                 time.sleep(5)
                 self.message = Message(self._recv_buffer, self.sock, self.addr, self.username, action="login", value=self.username)
+            if self.state == State.START_WAITING:
+                print("\n\n\n\n\n\n\n\n")
+                print("Waiting for a user to join...\n\n\n\n")
                 
                 
             self._set_selector_events_mask("w")
