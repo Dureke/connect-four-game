@@ -27,7 +27,7 @@ games = []
 connections = {} # player : (connection, board)
 
 
-# logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.INFO)
 
 def setup_lsock(server_address):
     """Function called before the server event loop. Establishes server listening socket.

@@ -151,7 +151,7 @@ class Board(Rules):
             for column in numpy.array([0, 1, 2, 3, 4, 5, 6]):
                 is_win, color, count = self.check_helper(self.board[row][column], color, count)
                 if is_win:
-                    return color
+                    return is_win
         return 0
     
     def check_vertical(self):
@@ -161,7 +161,7 @@ class Board(Rules):
             for row in numpy.array([0, 1, 2, 3, 4, 5]):
                 is_win, color, count = self.check_helper(self.board[row][column], color, count)
                 if is_win:
-                    return color
+                    return is_win
         return 0
     
     def check_left_diagnal(self):
@@ -174,7 +174,7 @@ class Board(Rules):
             while (column < 7 and row < 6):
                 is_win, color, count = self.check_helper(self.board[row][column], color, count)
                 if is_win:
-                    return color
+                    return is_win
                 column += 1
                 row += 1
         
@@ -186,7 +186,7 @@ class Board(Rules):
             while (column < 7 and row < 6):
                 is_win, color, count = self.check_helper(self.board[row][column], color, count)
                 if is_win:
-                    return color
+                    return is_win
                 column += 1
                 row += 1
 
@@ -202,7 +202,7 @@ class Board(Rules):
             while (column < 7 and row > -1):
                 is_win, color, count = self.check_helper(self.board[row][column], color, count)
                 if is_win:
-                    return color
+                    return is_win
                 column += 1
                 row -= 1
         
@@ -214,7 +214,7 @@ class Board(Rules):
             while (column < 7 and row > -1):
                 is_win, color, count = self.check_helper(self.board[row][column], color, count)
                 if is_win:
-                    return color
+                    return is_win
                 column += 1
                 row -= 1
 
@@ -228,11 +228,15 @@ class Board(Rules):
             elif color == spot.getColor():
                 count += 1
                 if count >= 4:
-                    return True, color, count
+                    if color == 1:
+                        player = self.getPlayer1().getUsername()
+                    else:
+                        player = self.getPlayer2().getUsername()
+                    return player, color, count
             else:
                 count = 1
                 color = spot.getColor()
         else:
             color = 0
             count = 0
-        return False, color, count
+        return None, color, count

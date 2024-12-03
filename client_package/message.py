@@ -142,6 +142,7 @@ class Message:
         return None
     
     def _end_response(self, value):
+        logging.debug(f"Game end: Winner {value}, User {self.username}")
         if value == self.username:
             self.state = State.END_GAME_WIN
         else:
