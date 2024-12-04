@@ -93,8 +93,9 @@ class Board(Rules):
         all_legal_columns = [0, 1, 2, 3, 4, 5, 6]
         if move == "":
             return False
-        if not move.isdigit():
-            return False
+        if type(move) == str:
+            if not move.isdigit():
+                return False
         int_move = int(move)
         if int_move in all_legal_columns:
             if board.y_index(int_move) == 99:
