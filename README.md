@@ -1,7 +1,7 @@
 # Connect Four Python Game with Sockets
 
 This is a simple Connect Four game implemented using Python and sockets.
-**How to run:**
+## How to run:
 1. **Start the server:** Run the `Server.py` script.
    - To play with default settings, run in a terminal with `python server.py`
    - There is two optional arguments: IP address and Port
