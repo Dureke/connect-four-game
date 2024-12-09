@@ -45,3 +45,33 @@ Example Series of Inputs:
 **Technologies used:**
 * Python
 * Sockets
+
+## Roadmap
+* Client-Server architecture to ensure effective communication between server and clients
+* A clear messaging protocol between server and client
+* Server can handle multiple clients connecting and playing simultaneously, as well as disconnections
+* Server can handle unexpected errors easily and informs the user an error has occurred, with a detailed explanation
+* Code will be clean, commented, efficient, modular, and factored without duplicating code
+* An easy to use UI, whether it be a GUI or CLI
+* An accurate implementation of the Connect Four rules, as described by Hasbro
+
+## Retrospective
+
+***What went right:***
+* Server/client communication
+* Simultaneous client connections and games
+* Client hosting and joining
+* Game output and outcome
+* Modularity of messages and generation/response
+
+***What could be improved on:***
+* Authentication of users
+* Tracking of clients and the associated games
+* Protocol for updating client games (reporting the entire history of moves akin to Forsyth–Edwards Notation in chess instead of the individual moves)
+* Encryption of messages sent to/from client and server
+* More user friendly and engaging UI instead of terminal graphics
+
+
+**Known issues:**
+* If user 1 hosts a game for user 2, and the game completes, the game will break if user 2 then hosts a game for user 1.
+* If a user begins hosting a game, then aborts using keyboardInterrupt, their name will continue to appear in the join list despite being removed
